@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { randomUUID } from "node:crypto";
 import { createHash } from "node:crypto";
 
 export const dynamic = "force-dynamic";
@@ -43,9 +42,5 @@ export async function POST(request: NextRequest) {
     console.error("Location consent save failed:", error.message);
     return NextResponse.json({ ok: false }, { status: 500 });
   }
-  const response = NextResponse.json({ ok: true });
-    if (!request.cookies.get("klb_visitor")) {
-      response.cookies.set("klb_visitor", visitorId, { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/", maxAge: 60 * 60 * 24 * 365 });
-    }
-    return response;
+  return NextResponse.json({ ok: true });
 }
