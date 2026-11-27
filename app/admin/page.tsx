@@ -30,7 +30,7 @@ export default function Admin(){
  async function load(){const {data,error}=await supabase.from("products").select("*").order("created_at",{ascending:false});if(error){setMessage(error.message);return;}setItems((data||[]) as Product[]);}
  useEffect(()=>{if(user)load();},[user]);
  useEffect(()=>{if(!cropFile){setCropUrl("");setCropSize({width:0,height:0});return;}const url=URL.createObjectURL(cropFile);setCropUrl(url);const img=new Image();img.onload=()=>{setCropSize({width:img.naturalWidth,height:img.naturalHeight});};img.src=url;return()=>URL.revokeObjectURL(url);},[cropFile]);
- useEffect(()=>{if(!cropSize.width||!cropSize.height)return;const ratioPercent=cropPreviewInfo().ratio/(cropSize.width/cropSize.height);const maxW=Math.min(100,100*ratioPercent);const maxH=maxW/ratioPercent;const w=maxW*.88,h=maxH*.88;setCropRect({x:(100-w)/2,y:(100-h)/2,w,h});},[cropSize.width,cropSize.height,cropTarget,cropPreviewDevice]);
+ useEffect(()=>{if(!cropSize.width||!cropSize.height)return;setCropRect(initialCropRect());},[cropSize.width,cropSize.height,cropTarget,cropPreviewDevice]);
  function cropPreviewInfo(){
   const key=cropTarget==="product"||cropTarget==="product_listing"?"product_listing":typeof cropTarget==="string"&&cropTarget.startsWith("setting:")?cropTarget.slice(8):"";
   const targets:Record<string,{label:string;pcWidth:number;pcHeight:number;mobileWidth:number;mobileHeight:number}>={
@@ -39,8 +39,8 @@ export default function Admin(){
    about_intro_background:{label:"ABOUT 상단 배경",pcWidth:1440,pcHeight:576,mobileWidth:390,mobileHeight:290},
    about_image:{label:"ABOUT 브리더 프로필",pcWidth:560,pcHeight:386,mobileWidth:350,mobileHeight:292},
    about_philosophy_image:{label:"ABOUT 철학 소개 사진",pcWidth:560,pcHeight:386,mobileWidth:350,mobileHeight:350},
-   species_muelleri_image:{label:"뮤엘러리 사진 영역",pcWidth:390,pcHeight:315,mobileWidth:250,mobileHeight:300},
-   species_hercules_image:{label:"헤라클레스 사진 영역",pcWidth:390,pcHeight:315,mobileWidth:250,mobileHeight:300},
+   species_muelleri_image:{label:"뮤엘러리 사진 영역",pcWidth:390,pcHeight:315,mobileWidth:400,mobileHeight:300},
+   species_hercules_image:{label:"헤라클레스 사진 영역",pcWidth:390,pcHeight:315,mobileWidth:400,mobileHeight:300},
    gallery_1:{label:"홈 갤러리 사진",pcWidth:360,pcHeight:265,mobileWidth:360,mobileHeight:250},
    gallery_2:{label:"홈 갤러리 사진",pcWidth:360,pcHeight:265,mobileWidth:360,mobileHeight:250},
    gallery_3:{label:"홈 갤러리 사진",pcWidth:360,pcHeight:265,mobileWidth:360,mobileHeight:250},
@@ -61,7 +61,7 @@ export default function Admin(){
  }
  function initialCropRect(){
   const {maxW,maxH}=cropMaxBounds();
-  const w=maxW*.84,h=maxH*.84;
+  const w=maxW,h=maxH;
   return {x:(100-w)/2,y:(100-h)/2,w,h};
  }
  function beginCrop(files:File[],target:"product"| "product_listing"|string){if(!files.length)return;setCropQueue(files);setCropIndex(0);setCropDone([]);setCropTarget(target);setCropFile(files[0]);setCropRatio("4:3");setCropZoom(1);setCropOffset({x:0,y:0});setCropRect({x:8,y:8,w:84,h:84});}
@@ -222,7 +222,7 @@ export default function Admin(){
  {cropFile&&<div className="photoCropOverlay" role="dialog" aria-modal="true" aria-label="사진 편집">
   <div className="photoCropDialog">
    <div className="photoCropHeader"><div><p className="eyebrow">KL BEETLE / PHOTO EDITOR</p><h2>사진 위치 및 크기 조절</h2><small>{cropIndex+1} / {cropQueue.length}장 편집 중</small></div><button type="button" onClick={()=>{setCropFile(null);setCropQueue([]);setCropDone([]);setCropTarget(null);}}>닫기</button></div>
-   <p className="photoCropHint">사진 위 테두리 안쪽을 드래그해 위치를 옮기고, 네 모서리를 드래그해 자를 영역을 자유롭게 키우거나 줄여줘. 처음부터 사진 대부분이 선택돼 있어.</p>
+   <p className="photoCropHint">선택 영역은 ABOUT 사진 표시 비율을 항상 유지해. 네 모서리로 크기를 줄이거나 키울 수 있고, 원본 사진 안에서 표시 영역에 맞는 최대 크기까지만 커져. 테두리 안쪽을 드래그하면 위치를 옮길 수 있어.</p>
    <div className="photoCropWorkspace">
     <div className="photoCropEditorColumn">
      <strong className="photoCropSectionTitle">원본 사진 · 표시할 영역 선택</strong>
