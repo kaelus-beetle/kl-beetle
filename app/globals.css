@@ -156,3 +156,8 @@
  .speciesImage{height:320px;min-height:320px;}
  .speciesImage img{width:100%;height:100%;object-fit:cover;object-position:center;}
 }
+
+
+/* SHOP sold status: slightly more prominent badge and crossed-out sold price */
+.shopSoldBadge{padding:10px 15px;font-size:10px;letter-spacing:.12em;}
+.shopProductInfo strong.shopSoldPrice{text-decoration:line-through;text-decoration-thickness:1.5px;text-decoration-color:#8a5148;color:#8a5148;}
