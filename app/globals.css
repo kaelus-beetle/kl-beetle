@@ -90,3 +90,21 @@
 .shopIntro{position:relative;isolation:isolate;background-image:linear-gradient(rgba(15,19,13,.48),rgba(15,19,13,.48)),url("https://cdn.myportfolio.com/ec60cecc-901c-4021-8130-5267ee3b3753/2602186f-abe6-4718-964a-9642d0ccb638_rw_1920.jpg?h=94fd710c32b012990d43b2a29c2f4aeb");background-position:center;background-size:cover;color:#f5f1e8;}
 .shopIntro .eyebrow,.shopIntro>p:last-child{color:#f5f1e8;}
 .shopIntro h1{text-shadow:0 2px 22px rgba(0,0,0,.4);}
+
+/* ABOUT philosophy: keep text compact beside the image */
+.aboutPhilosophy>.bodyCopy{margin:0;align-self:start;max-width:none;line-height:1.9;}
+@media(min-width:701px){.aboutPhilosophy{grid-template-columns:minmax(0,1fr) minmax(360px,1fr);align-items:start;row-gap:22px;}.aboutPhilosophy>.eyebrow,.aboutPhilosophy>h2{margin-top:0;margin-bottom:0;}.aboutPhilosophyImage{grid-row:3 / span 2;align-self:stretch;min-height:420px;height:100%;}}
+/* SHOP: fixed card geometry independent of product count */
+.shopProductGrid{width:min(1180px,100%);margin:0 auto;padding:60px 32px 110px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:28px;align-items:stretch;}
+.shopProductCard{display:flex;flex-direction:column;min-width:0;overflow:hidden;background:#f2efe8;border:1px solid #d5d0c5;color:#292d25;text-decoration:none;}
+.shopProductImage{height:270px;width:100%;position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#e3e0d7;padding:14px;}
+.shopProductImage img{display:block;width:100%;height:100%;object-fit:contain;}
+.shopProductPlaceholder{display:grid;place-items:center;width:100%;height:100%;color:#777;}
+.shopSoldBadge{position:absolute;top:15px;right:15px;background:#34392d;color:#fff;padding:8px 12px;font-size:9px;}
+.shopProductInfo{display:flex;flex-direction:column;align-items:flex-start;gap:12px;flex:1;min-height:175px;padding:22px;background:#f2efe8;color:#292d25;}
+.shopProductInfo>span{color:#626a4e;font-size:10px;letter-spacing:.18em;}
+.shopProductInfo h2{margin:0;color:#292d25;font-size:19px;font-weight:400;line-height:1.45;min-height:2.9em;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere;}
+.shopProductInfo strong{color:#292d25;font-size:14px;margin-top:auto;}
+.shopProductInfo small{font-size:11px;color:#626a4e;border-bottom:1px solid #626a4e;padding-bottom:5px;}
+@media(max-width:900px){.shopProductGrid{grid-template-columns:repeat(2,minmax(0,1fr));}}
+@media(max-width:700px){.aboutPhilosophy>.bodyCopy{margin:0 0 16px;line-height:1.9;}.aboutPhilosophyImage{margin:24px 0 0;height:260px;min-height:260px;}.shopProductGrid{grid-template-columns:1fr;padding:35px 7vw 70px;gap:22px;}.shopProductImage{height:260px;}.shopProductInfo{min-height:155px;}}
