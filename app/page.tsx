@@ -1,11 +1,11 @@
 // Trigger a fresh Vercel production deployment.
 import Link from "next/link";
 import { supabase, configured } from "../lib/supabase";
-const fallbackHero = "https://images.unsplash.com/photo-1597776941486-054bf4a8d7a1?auto=format&fit=crop&w=2200&q=90";
+const fallbackHero = "https://images.unsplash.com/photo-1673295671950-dc7f478d1f22?auto=format&fit=crop&fm=jpg&q=85&w=3000";
 const fallbackGallery = [
-  "https://images.unsplash.com/photo-1558944351-cd4b5b1f6d7d?auto=format&fit=crop&w=900&q=85",
-  "https://images.unsplash.com/photo-1597776941486-054bf4a8d7a1?auto=format&fit=crop&w=900&q=85",
-  "https://images.unsplash.com/photo-1585837575652-267c041d77d4?auto=format&fit=crop&w=900&q=85"
+  "https://upload.wikimedia.org/wikipedia/commons/5/54/Rainbow_stag_beetle.jpg",
+  "https://upload.wikimedia.org/wikipedia/commons/1/15/Dynaste_hercule_%2814%29.jpg",
+  "https://upload.wikimedia.org/wikipedia/commons/2/2d/Stag_Beetle_%28Lamprima_adolphinae%29_%288430587514%29.jpg"
 ];
 export default async function Home() {
   let settings: Record<string, string> = {};
@@ -34,7 +34,7 @@ export default async function Home() {
       </div>
       <div className="homeGallery">
         {gallery.map((src, i) => <Link href={i === 0 ? "/about" : "/shop"} className="homeGalleryItem" key={i}>
-          <img src={src} alt={["P. muelleri beetle","Hercules beetle","Stag beetle"][i]}/>
+          <img src={src} alt={["Phalacrognathus muelleri — rainbow stag beetle","Dynastes hercules — Hercules beetle","Lamprima adolphinae — Lamprima stag beetle"][i]}/>
         </Link>)}
       </div>
     </section>
