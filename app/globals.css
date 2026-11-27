@@ -179,3 +179,8 @@
  .speciesImage{height:460px;min-height:460px;}
  .speciesImage img{width:100%;height:100%;max-height:none;object-fit:fill;object-position:center;}
 }
+
+
+/* SHOP product photos: fill the image frame without blank margins */
+.shopProductImage{padding:0;}
+.shopProductImage img{width:100%;height:100%;object-fit:cover;object-position:center;}
