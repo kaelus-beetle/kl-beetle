@@ -11,7 +11,7 @@ export default function Admin(){
  const [email,setEmail]=useState(""); const [password,setPassword]=useState(""); const [user,setUser]=useState<any>(null); const [items,setItems]=useState<Product[]>([]);
  const [title,setTitle]=useState(""); const [price,setPrice]=useState(""); const [category,setCategory]=useState("");
  const [scientificName,setScientificName]=useState(""); const [origin,setOrigin]=useState(""); const [specimenSize,setSpecimenSize]=useState(""); const [sex,setSex]=useState(""); const [specimenDescription,setSpecimenDescription]=useState("");
- const [images,setImages]=useState<File[]>([]); const [visitorLogs,setVisitorLogs]=useState<VisitorLog[]>([]); const [totalViews,setTotalViews]=useState(0); const [uniqueVisitors,setUniqueVisitors]=useState(0); const [productViews,setProductViews]=useState<Record<number,number>>({}); const [editingId,setEditingId]=useState<number|null>(null); const [editingImages,setEditingImages]=useState<string[]>([]); const [message,setMessage]=useState(""); const [uploading,setUploading]=useState<string|null>(null);
+ const [images,setImages]=useState<File[]>([]); const [visitorLogs,setVisitorLogs]=useState<VisitorLog[]>([]); const [selectedVisitorIds,setSelectedVisitorIds]=useState<number[]>([]); const [totalViews,setTotalViews]=useState(0); const [uniqueVisitors,setUniqueVisitors]=useState(0); const [productViews,setProductViews]=useState<Record<number,number>>({}); const [editingId,setEditingId]=useState<number|null>(null); const [editingImages,setEditingImages]=useState<string[]>([]); const [message,setMessage]=useState(""); const [uploading,setUploading]=useState<string|null>(null);
  useEffect(()=>{if(!configured)return;supabase.auth.getSession().then(({data})=>setUser(data.session?.user||null));const {data:{subscription}}=supabase.auth.onAuthStateChange((_e,s)=>setUser(s?.user||null));return()=>subscription.unsubscribe();},[]);
  async function load(){const {data,error}=await supabase.from("products").select("*").order("created_at",{ascending:false});if(error){setMessage(error.message);return;}setItems((data||[]) as Product[]);}
  useEffect(()=>{if(user)load();},[user]);
@@ -21,7 +21,7 @@ export default function Admin(){
    supabase.from("visitor_logs").select("*").order("created_at",{ascending:false}).limit(100)
   ]);
   if(!summaryError&&summary?.[0]){setTotalViews(Number(summary[0].total_views||0));setUniqueVisitors(Number(summary[0].unique_visitors||0));}
-  if(!logsError)setVisitorLogs((logs||[]) as VisitorLog[]);
+  if(!logsError){setVisitorLogs((logs||[]) as VisitorLog[]);setSelectedVisitorIds([]);}
   if(items.length){
    const pairs=await Promise.all(items.map(async p=>{
     const {count,error}=await supabase.from("visitor_logs").select("id",{count:"exact",head:true}).eq("page_path",`/shop/${p.id}`);
@@ -31,6 +31,22 @@ export default function Admin(){
   }
  }
  useEffect(()=>{if(user)loadAnalytics();},[user,items]);
+ async function deleteSelectedVisitors(){
+  if(!selectedVisitorIds.length){setMessage("삭제할 방문 기록을 먼저 선택해 줘.");return;}
+  if(!confirm(`선택한 방문 기록 ${selectedVisitorIds.length}건을 삭제할까?`))return;
+  const {error}=await supabase.from("visitor_logs").delete().in("id",selectedVisitorIds);
+  if(error){setMessage("방문 기록 삭제 실패: "+error.message);return;}
+  setMessage(`선택한 방문 기록 ${selectedVisitorIds.length}건을 삭제했어.`);
+  await loadAnalytics();
+ }
+ async function clearVisitorLogs(){
+  if(!confirm("방문 기록을 전부 삭제할까? 삭제하면 되돌릴 수 없어."))return;
+  const {error}=await supabase.from("visitor_logs").delete().gte("id",0);
+  if(error){setMessage("방문 기록 초기화 실패: "+error.message);return;}
+  setSelectedVisitorIds([]);
+  setMessage("전체 방문 기록을 초기화했어.");
+  await loadAnalytics();
+ }
  async function login(e:any){e.preventDefault();const {error}=await supabase.auth.signInWithPassword({email,password});setMessage(error?.message||"로그인되었습니다.");}
  function clearForm(){setEditingId(null);setEditingImages([]);setTitle("");setPrice("");setCategory("");setScientificName("");setOrigin("");setSpecimenSize("");setSex("");setSpecimenDescription("");setImages([]);}
  function edit(p:Product){setEditingId(p.id);setEditingImages(p.image_urls?.length?p.image_urls:(p.image_url?[p.image_url]:[]));setTitle(p.title||"");setPrice(p.price||"");setCategory(p.category||"");setScientificName(p.scientific_name||"");setOrigin(p.origin||"");setSpecimenSize(p.specimen_size||"");setSex(p.sex||"");setSpecimenDescription(p.specimen_description||"");setImages([]);setMessage("수정할 내용을 입력한 뒤 저장해 주세요.");setTimeout(()=>editorRef.current?.scrollIntoView({behavior:"smooth",block:"start"}),50);}
@@ -63,9 +79,14 @@ export default function Admin(){
   <h3 style={{fontWeight:400,marginTop:"28px"}}>게시글별 조회수</h3>
   {items.length===0?<p>등록된 게시글이 없어.</p>:items.map(p=><div key={p.id} style={{display:"flex",justifyContent:"space-between",gap:"12px",padding:"11px 0",borderBottom:"1px solid #d5d0c5",fontSize:"13px"}}><span>{p.title}</span><strong>{(productViews[p.id]??0).toLocaleString("ko-KR")}회</strong></div>)}
   <h3 style={{fontWeight:400,marginTop:"30px"}}>최근 방문 기록 (최대 100건)</h3>
+  <div style={{display:"flex",flexWrap:"wrap",gap:"8px",margin:"12px 0"}}>
+   <button type="button" onClick={deleteSelectedVisitors} disabled={!selectedVisitorIds.length} style={{border:0,background:"#626a4e",color:"#fff",padding:"9px 13px",cursor:"pointer",opacity:selectedVisitorIds.length?1:.5}}>선택 삭제 ({selectedVisitorIds.length})</button>
+   <button type="button" onClick={clearVisitorLogs} style={{border:"1px solid #9a5148",background:"transparent",color:"#9a5148",padding:"9px 13px",cursor:"pointer"}}>전체 기록 초기화</button>
+   <button type="button" onClick={()=>setSelectedVisitorIds(visitorLogs.map(v=>v.id))} disabled={!visitorLogs.length} style={{border:"1px solid #bdb8ad",background:"transparent",padding:"9px 13px",cursor:"pointer"}}>현재 목록 전체 선택</button>
+  </div>
   <div style={{overflowX:"auto"}}>
    <table style={{width:"100%",borderCollapse:"collapse",fontSize:"11px",minWidth:"760px"}}>
-    <thead><tr>{["접속 시간","IP 주소","접속 지역","기기 / OS","브라우저","방문 페이지"].map(x=><th key={x} style={{textAlign:"left",padding:"10px 8px",borderBottom:"1px solid #bdb8ad"}}>{x}</th>)}</tr></thead>
+    <thead><tr><th style={{textAlign:"left",padding:"10px 8px",borderBottom:"1px solid #bdb8ad"}}><input aria-label="현재 목록 전체 선택" type="checkbox" checked={visitorLogs.length>0&&visitorLogs.every(v=>selectedVisitorIds.includes(v.id))} onChange={e=>setSelectedVisitorIds(e.target.checked?visitorLogs.map(v=>v.id):[])} /></th>{["접속 시간","IP 주소","접속 지역","기기 / OS","브라우저","방문 페이지"].map(x=><th key={x} style={{textAlign:"left",padding:"10px 8px",borderBottom:"1px solid #bdb8ad"}}>{x}</th>)}</tr></thead>
     <tbody>{visitorLogs.map(v=><tr key={v.id}>
      <td style={{padding:"10px 8px",borderBottom:"1px solid #e0dcd3",whiteSpace:"nowrap"}}>{new Date(v.created_at).toLocaleString("ko-KR",{timeZone:"Asia/Seoul"})}</td>
      <td style={{padding:"10px 8px",borderBottom:"1px solid #e0dcd3",whiteSpace:"nowrap"}}>{v.ip_address||"확인 불가"}</td>
