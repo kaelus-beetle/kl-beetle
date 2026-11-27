@@ -16,18 +16,16 @@ export default function Admin(){
  async function load(){const {data,error}=await supabase.from("products").select("*").order("created_at",{ascending:false});if(error){setMessage(error.message);return;}setItems((data||[]) as Product[]);}
  useEffect(()=>{if(user)load();},[user]);
  async function loadAnalytics(){
-  const [{data:summary,error:summaryError},{data:logs,error:logsError}]=await Promise.all([
+  const [{data:summary,error:summaryError},{data:logs,error:logsError},{data:counts,error:countsError}]=await Promise.all([
    supabase.rpc("get_visitor_summary"),
-   supabase.from("visitor_logs").select("*").order("created_at",{ascending:false}).limit(100)
+   supabase.from("visitor_logs").select("*").order("created_at",{ascending:false}).limit(100),
+   supabase.from("page_view_counts").select("page_path,view_count")
   ]);
   if(!summaryError&&summary?.[0]){setTotalViews(Number(summary[0].total_views||0));setUniqueVisitors(Number(summary[0].unique_visitors||0));}
   if(!logsError){setVisitorLogs((logs||[]) as VisitorLog[]);setSelectedVisitorIds([]);}
-  if(items.length){
-   const pairs=await Promise.all(items.map(async p=>{
-    const {count,error}=await supabase.from("visitor_logs").select("id",{count:"exact",head:true}).eq("page_path",`/shop/${p.id}`);
-    return [p.id,error?0:(count||0)] as [number,number];
-   }));
-   setProductViews(Object.fromEntries(pairs));
+  if(!countsError){
+   const countMap=Object.fromEntries((counts||[]).map((row:any)=>[row.page_path,Number(row.view_count||0)]));
+   setProductViews(Object.fromEntries(items.map(p=>[p.id,countMap[`/shop/${p.id}`]||0])));
   }
  }
  useEffect(()=>{if(user)loadAnalytics();},[user,items]);
