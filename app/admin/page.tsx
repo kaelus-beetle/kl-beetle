@@ -65,48 +65,43 @@ export default function Admin(){
   const dx=(e.clientX-cropDragRef.current.startX)/rect.width*100;
   const dy=(e.clientY-cropDragRef.current.startY)/rect.height*100;
   const o=cropDragRef.current.origin;
-  let next={...o};
   if(cropDragRef.current.mode==="move"){
-   next.x=Math.max(0,Math.min(100-o.w,o.x+dx));
-   next.y=Math.max(0,Math.min(100-o.h,o.y+dy));
-  }else{
-   const mode=cropDragRef.current.mode;
-   const ratioPercent=targetCropRatio()/(rect.width/rect.height);
-   const left=mode.includes("w"),top=mode.includes("n");
-   let width=o.w+(left?-dx:dx);
-   const maxWidth=Math.min(left?o.x+o.w:100-o.x,(top?o.y+o.h:100-o.y)*ratioPercent);
-   width=Math.max(8,Math.min(maxWidth,width));
-   const height=width/ratioPercent;
-   next={x:left?o.x+o.w-width:o.x,y:top?o.y+o.h-height:o.y,w:width,h:height};
+   setCropRect({...o,x:Math.max(0,Math.min(100-o.w,o.x+dx)),y:Math.max(0,Math.min(100-o.h,o.y+dy))});
+   return;
   }
-  setCropRect(next);
+  const mode=cropDragRef.current.mode;
+  const left=mode.includes("w"),top=mode.includes("n");
+  const ratioPercent=targetCropRatio()/(rect.width/rect.height);
+  const availableX=left?o.x+o.w:100-o.x;
+  const availableY=top?o.y+o.h:100-o.y;
+  const maxWidth=Math.min(availableX,availableY*ratioPercent);
+  const horizontalDelta=left?-dx:dx;
+  const verticalDelta=top?-dy:dy;
+  const widthDelta=Math.abs(horizontalDelta)>=Math.abs(verticalDelta*ratioPercent)?horizontalDelta:verticalDelta*ratioPercent;
+  const minWidth=Math.min(8,maxWidth);
+  const width=Math.max(minWidth,Math.min(maxWidth,o.w+widthDelta));
+  const height=width/ratioPercent;
+  setCropRect({x:left?o.x+o.w-width:o.x,y:top?o.y+o.h-height:o.y,w:width,h:height});
  }
  async function finishCrop(){
-  if(!cropFile||!cropUrl||!cropStageRef.current||!cropSize.width)return;
+  if(!cropFile||!cropUrl||!cropStageRef.current||!cropSize.width||!cropSize.height)return;
   const image=new Image();image.src=cropUrl;
   await new Promise<void>((resolve,reject)=>{image.onload=()=>resolve();image.onerror=()=>reject(new Error("사진을 불러오지 못했어."));});
-  const stage=cropStageRef.current;const stageW=stage.clientWidth;const stageH=stage.clientHeight;
-  const base=Math.max(stageW/cropSize.width,stageH/cropSize.height);const scale=base*cropZoom;
-  const renderedW=cropSize.width*scale;const renderedH=cropSize.height*scale;
-  const imageLeft=(stageW-renderedW)/2+cropOffset.x;const imageTop=(stageH-renderedH)/2+cropOffset.y;
-  const sx=Math.max(0,Math.min(cropSize.width,((cropRect.x/100*stageW)-imageLeft)/scale));
-  const sy=Math.max(0,Math.min(cropSize.height,((cropRect.y/100*stageH)-imageTop)/scale));
-  const sw=Math.max(1,Math.min(cropSize.width-sx,(cropRect.w/100*stageW)/scale));
-  const sh=Math.max(1,Math.min(cropSize.height-sy,(cropRect.h/100*stageH)/scale));
-  const outW=1800;const outH=Math.round(outW/targetCropRatio());
+  const sx=Math.max(0,Math.floor(cropRect.x/100*cropSize.width));
+  const sy=Math.max(0,Math.floor(cropRect.y/100*cropSize.height));
+  const sw=Math.max(1,Math.min(cropSize.width-sx,Math.round(cropRect.w/100*cropSize.width)));
+  const sh=Math.max(1,Math.min(cropSize.height-sy,Math.round(cropRect.h/100*cropSize.height)));
+  const outW=1800;const outH=Math.max(1,Math.round(outW/(sw/sh)));
   const canvas=document.createElement("canvas");canvas.width=outW;canvas.height=outH;
   const ctx=canvas.getContext("2d");if(!ctx){setMessage("사진 편집을 시작하지 못했어.");return;}
   ctx.drawImage(image,sx,sy,sw,sh,0,0,outW,outH);
   const blob=await new Promise<Blob|null>(resolve=>canvas.toBlob(resolve,"image/jpeg",.92));
   if(!blob){setMessage("편집한 사진을 저장하지 못했어.");return;}
   const edited=new File([blob],cropFile.name.replace(/\\.[^.]+$/,"")+".jpg",{type:"image/jpeg"});
-  const completed=[...cropDone,edited];
-  if(cropIndex+1<cropQueue.length){setCropDone(completed);setCropIndex(cropIndex+1);setCropFile(cropQueue[cropIndex+1]);setCropZoom(1);setCropOffset({x:0,y:0});setCropRect({x:8,y:8,w:84,h:84});return;}
-  if(cropTarget==="product"){setImages(completed);setMessage("상세 페이지용 사진 편집 완료.");} else if(cropTarget==="product_listing"){setListingImage(completed[0]);setMessage("상품 목록 카드용 사진 편집 완료. 판매글을 저장하면 반영돼.");}
-  else if(typeof cropTarget==="string"&&cropTarget.startsWith("setting:")){await uploadSetting(cropTarget.slice(8),completed[0]);}
+  if(cropTarget==="product_listing"){setListingImage(edited);setMessage("SHOP 목록 대표 사진 편집 완료. 판매글을 저장하면 반영돼.");}
+  else if(typeof cropTarget==="string"&&cropTarget.startsWith("setting:")){await uploadSetting(cropTarget.slice(8),edited);}
   setCropFile(null);setCropQueue([]);setCropDone([]);setCropTarget(null);
  }
-
  async function loadAnalytics(){
   const [{data:summary,error:summaryError},{data:logs,error:logsError},{data:counts,error:countsError}]=await Promise.all([
    supabase.rpc("get_visitor_summary"),
@@ -204,7 +199,7 @@ export default function Admin(){
   <label>성별<input value={sex} onChange={e=>setSex(e.target.value)} placeholder="수컷 / 암컷 / 한쌍"/></label>
   <label>가격<input value={price} onChange={e=>setPrice(e.target.value)} placeholder="가격 협의"/></label>
   <label>개체 설명<textarea value={specimenDescription} onChange={e=>setSpecimenDescription(e.target.value)} placeholder="혈통, 우화일, 먹이, 특징 등 개체에 대한 설명을 작성해 주세요."/></label>
-  <label>상세 페이지 사진 (여러 장 가능)<input type="file" accept="image/*" multiple onChange={e=>{const files=Array.from(e.target.files||[]);if(files.length)beginCrop(files,"product");e.currentTarget.value="";}}/><small>{editingId!==null?"기존 사진은 유지돼. 새 사진을 선택하면 편집 후 사진 전체가 교체돼.":"여러 장을 선택하면 한 장씩 편집할 수 있어."}</small>{images.length>0&&<small>편집 완료된 새 사진: {images.length}장</small>}{editingId!==null&&editingImages.length>0&&images.length===0&&<small>현재 등록된 사진: {editingImages.length}장</small>}</label>
+  <label>상세 페이지 사진 (원본 그대로 · 여러 장 가능)<input type="file" accept="image/*" multiple onChange={e=>{const files=Array.from(e.target.files||[]);if(files.length){setImages(files);setMessage("상세 페이지용 원본 사진을 선택했어.");}e.currentTarget.value="";}}/><small>{editingId!==null?"기존 사진은 유지돼. 새 사진을 선택하면 편집 후 사진 전체가 교체돼.":"선택한 원본 사진이 상세 페이지에 그대로 등록돼."}</small>{images.length>0&&<small>편집 완료된 새 사진: {images.length}장</small>}{editingId!==null&&editingImages.length>0&&images.length===0&&<small>현재 등록된 사진: {editingImages.length}장</small>}</label>
   <label>SHOP 목록 카드 사진 (별도 자르기)<input type="file" accept="image/*" onChange={e=>{const file=e.target.files?.[0];if(file)beginCrop([file],"product_listing");e.currentTarget.value="";}}/><small>{listingImage?"새 목록용 사진 편집 완료":editingId!==null?"새 사진을 선택하지 않으면 기존 목록 사진을 유지해.":"목록 카드에 표시할 사진을 별도로 올려줘."}</small></label>
   <button type="submit">{editingId!==null?"수정 내용 저장":"판매글 등록"}</button>{editingId!==null&&<button type="button" onClick={clearForm}>수정 취소</button>}
  </form>
@@ -213,12 +208,12 @@ export default function Admin(){
  {cropFile&&<div className="photoCropOverlay" role="dialog" aria-modal="true" aria-label="사진 편집">
   <div className="photoCropDialog">
    <div className="photoCropHeader"><div><p className="eyebrow">KL BEETLE / PHOTO EDITOR</p><h2>사진 위치 및 크기 조절</h2><small>{cropIndex+1} / {cropQueue.length}장 편집 중</small></div><button type="button" onClick={()=>{setCropFile(null);setCropQueue([]);setCropDone([]);setCropTarget(null);}}>닫기</button></div>
-   <p className="photoCropHint">원본 사진 전체가 보여. 선택 사각형은 실제 표시 비율을 유지해. 네 꼭짓점으로 크기를 조절하고, 안쪽을 드래그해 위치를 옮겨줘.</p>
+   <p className="photoCropHint">원본 사진 경계 안에서만 자를 수 있어. 네 꼭짓점은 표시 비율을 유지하며 움직이고, 사진 바깥으로 넘어가지 않아. 안쪽을 드래그해 위치를 옮겨줘.</p>
    <div className="photoCropWorkspace">
     <div className="photoCropEditorColumn">
      <strong className="photoCropSectionTitle">원본 사진 · 표시할 영역 선택</strong>
      <div ref={cropStageRef} className="photoCropStage" style={{aspectRatio:cropAspect(),width:`min(100%, calc(52vh * ${cropAspect()}))`,touchAction:"none"}} onPointerDown={cropStagePointerDown} onPointerMove={cropStagePointerMove} onPointerUp={()=>{cropDragRef.current=null;}} onPointerCancel={()=>{cropDragRef.current=null;}}>
-      {cropUrl&&<img src={cropUrl} alt="편집할 사진" draggable={false} style={{transform:`translate(calc(-50% + ${cropOffset.x}px),calc(-50% + ${cropOffset.y}px)) scale(${cropZoom})`}}/>}
+      {cropUrl&&<img src={cropUrl} alt="편집할 사진" draggable={false} style={{transform:"translate(-50%,-50%)"}}/>}
       <div className="photoCropSelection" style={{left:`${cropRect.x}%`,top:`${cropRect.y}%`,width:`${cropRect.w}%`,height:`${cropRect.h}%`}}>
        <span className="photoCropSelectionLabel">자를 영역</span>
        {(["nw","ne","sw","se"] as const).map(h=><span key={h} data-crop-handle={h} className={`photoCropHandle photoCropHandle-${h}`}/>)}
@@ -230,7 +225,7 @@ export default function Admin(){
     <label>표시 영역 비율 <strong>{targetCropRatio().toFixed(2)} : 1 (자동 고정)</strong></label>
     <label>확대 / 축소 <strong>{Math.round(cropZoom*100)}%</strong><input type="range" min="1" max="3" step=".01" value={cropZoom} onChange={e=>setCropZoom(Number(e.target.value))}/></label>
    </div>
-   <div className="photoCropActions"><button type="button" className="photoCropReset" onClick={()=>{setCropZoom(1);setCropOffset({x:0,y:0});setCropRect(initialCropRect());}}>자르기 영역 초기화</button><button type="button" onClick={finishCrop}> {cropIndex+1<cropQueue.length?"다음 사진":"편집 완료"} </button></div>
+   <div className="photoCropActions"><button type="button" className="photoCropReset" onClick={()=>{setCropRect(initialCropRect());}}>자르기 영역 초기화</button><button type="button" onClick={finishCrop}> {cropIndex+1<cropQueue.length?"다음 사진":"편집 완료"} </button></div>
   </div>
  </div>}
  {message&&<p className="notice">{message}</p>}</main>;
