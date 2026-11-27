@@ -3,7 +3,7 @@ import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } f
 import { supabase, configured } from "../../lib/supabase";
 
 type VisitorLog = { id:number; visitor_id:string; ip_address:string|null; country:string|null; region:string|null; city:string|null; device:string|null; operating_system:string|null; browser:string|null; page_path:string; created_at:string };
-type Product = { id:number; title:string; price:string|null; image_url:string|null; image_urls?:string[]|null; category:string|null; is_sold:boolean; scientific_name?:string|null; origin?:string|null; specimen_size?:string|null; sex?:string|null; specimen_description?:string|null };
+type Product = { id:number; title:string; price:string|null; image_url:string|null; listing_image_url?:string|null; image_urls?:string[]|null; category:string|null; is_sold:boolean; scientific_name?:string|null; origin?:string|null; specimen_size?:string|null; sex?:string|null; specimen_description?:string|null };
 const imageSlots=[{key:"hero_image",label:"메인 배경 사진"},{key:"shop_intro_background",label:"SHOP 상단 자연 배경 사진"},{key:"about_intro_background",label:"ABOUT 상단 MEET THE BREEDER 배경"},{key:"about_image",label:"ABOUT 브리더 프로필 사진"},{key:"about_philosophy_image",label:"ABOUT Small wonders 아래 사진"},{key:"species_muelleri_image",label:"ABOUT 뮤엘러리사슴벌레 사진"},{key:"species_hercules_image",label:"ABOUT 헤라클레스장수풍뎅이 사진"},{key:"gallery_1",label:"갤러리 사진 1"},{key:"gallery_2",label:"갤러리 사진 2"},{key:"gallery_3",label:"갤러리 사진 3"}];
 
 export default function Admin(){
@@ -11,7 +11,7 @@ export default function Admin(){
  const [email,setEmail]=useState(""); const [password,setPassword]=useState(""); const [user,setUser]=useState<any>(null); const [items,setItems]=useState<Product[]>([]);
  const [title,setTitle]=useState(""); const [price,setPrice]=useState(""); const [category,setCategory]=useState("");
  const [scientificName,setScientificName]=useState(""); const [origin,setOrigin]=useState(""); const [specimenSize,setSpecimenSize]=useState(""); const [sex,setSex]=useState(""); const [specimenDescription,setSpecimenDescription]=useState("");
- const [images,setImages]=useState<File[]>([]);
+ const [images,setImages]=useState<File[]>([]); const [listingImage,setListingImage]=useState<File|null>(null);
  const [cropQueue,setCropQueue]=useState<File[]>([]);
  const [cropIndex,setCropIndex]=useState(0);
  const [cropDone,setCropDone]=useState<File[]>([]);
@@ -29,8 +29,10 @@ export default function Admin(){
  useEffect(()=>{if(!configured)return;supabase.auth.getSession().then(({data})=>setUser(data.session?.user||null));const {data:{subscription}}=supabase.auth.onAuthStateChange((_e,s)=>setUser(s?.user||null));return()=>subscription.unsubscribe();},[]);
  async function load(){const {data,error}=await supabase.from("products").select("*").order("created_at",{ascending:false});if(error){setMessage(error.message);return;}setItems((data||[]) as Product[]);}
  useEffect(()=>{if(user)load();},[user]);
- useEffect(()=>{if(!cropFile){setCropUrl("");setCropSize({width:0,height:0});return;}const url=URL.createObjectURL(cropFile);setCropUrl(url);const img=new Image();img.onload=()=>setCropSize({width:img.naturalWidth,height:img.naturalHeight});img.src=url;return()=>URL.revokeObjectURL(url);},[cropFile]);
- function beginCrop(files:File[],target:"product"|string){if(!files.length)return;setCropQueue(files);setCropIndex(0);setCropDone([]);setCropTarget(target);setCropFile(files[0]);setCropRatio("4:3");setCropZoom(1);setCropOffset({x:0,y:0});setCropRect({x:8,y:8,w:84,h:84});}
+ useEffect(()=>{if(!cropFile){setCropUrl("");setCropSize({width:0,height:0});return;}const url=URL.createObjectURL(cropFile);setCropUrl(url);const img=new Image();img.onload=()=>{setCropSize({width:img.naturalWidth,height:img.naturalHeight});};img.src=url;return()=>URL.revokeObjectURL(url);},[cropFile]);
+ function targetCropRatio(){const key=cropTarget==="product_listing"?"product":typeof cropTarget==="string"&&cropTarget.startsWith("setting:")?cropTarget.slice(8):"";const ratios:Record<string,number>={hero_image:16/9,shop_intro_background:2.5,about_intro_background:2.5,about_image:1.45,about_philosophy_image:1.45,species_muelleri_image:1.24,species_hercules_image:1.24,gallery_1:1.5,gallery_2:1.5,gallery_3:1.5,product:1.12};return ratios[key]||4/3;}
+ function initialCropRect(){const stageAspect=cropSize.width&&cropSize.height?cropSize.width/cropSize.height:4/3;const ratio=targetCropRatio();let w=84,h=84;if(w/h*stageAspect>ratio)w=h*ratio/stageAspect;else h=w*stageAspect/ratio;return {x:(100-w)/2,y:(100-h)/2,w,h};}
+ function beginCrop(files:File[],target:"product"| "product_listing"|string){if(!files.length)return;setCropQueue(files);setCropIndex(0);setCropDone([]);setCropTarget(target);setCropFile(files[0]);setCropRatio("4:3");setCropZoom(1);setCropOffset({x:0,y:0});setCropRect({x:8,y:8,w:84,h:84});}
  function cropPreviewInfo(){
   const key=cropTarget==="product"?"product":typeof cropTarget==="string"&&cropTarget.startsWith("setting:")?cropTarget.slice(8):"";
   const targets:Record<string,{label:string;pc:number;mobile:number}>={
@@ -49,7 +51,7 @@ export default function Admin(){
   const info=targets[key]||{label:"사진 표시 영역",pc:4/3,mobile:4/3};
   return {...info,ratio:cropPreviewDevice==="pc"?info.pc:info.mobile};
  }
- function cropAspect(){if(cropRatio==="original"&&cropSize.width&&cropSize.height)return cropSize.width/cropSize.height;const [w,h]=cropRatio.split(":").map(Number);return w/h;}
+ function cropAspect(){return cropSize.width&&cropSize.height?cropSize.width/cropSize.height:4/3;}
  function cropStagePointerDown(e:ReactPointerEvent<HTMLDivElement>){
   if(!cropStageRef.current)return;
   const handle=(e.target as HTMLElement).closest("[data-crop-handle]") as HTMLElement|null;
@@ -62,7 +64,7 @@ export default function Admin(){
   const stage=cropStageRef.current;const rect=stage.getBoundingClientRect();
   const dx=(e.clientX-cropDragRef.current.startX)/rect.width*100;
   const dy=(e.clientY-cropDragRef.current.startY)/rect.height*100;
-  const o=cropDragRef.current.origin;const min=8;let next={...o};
+  const o=cropDragRef.current.origin;const min=8;let next={...o}; const ratio=targetCropRatio(); const stageAspect=rect.width/rect.height; const ratioPercent=ratio/stageAspect;
   if(cropDragRef.current.mode==="move"){
    next.x=Math.max(0,Math.min(100-o.w,o.x+dx));next.y=Math.max(0,Math.min(100-o.h,o.y+dy));
   }else{
@@ -85,7 +87,7 @@ export default function Admin(){
   const sy=Math.max(0,Math.min(cropSize.height,((cropRect.y/100*stageH)-imageTop)/scale));
   const sw=Math.max(1,Math.min(cropSize.width-sx,(cropRect.w/100*stageW)/scale));
   const sh=Math.max(1,Math.min(cropSize.height-sy,(cropRect.h/100*stageH)/scale));
-  const outW=1800;const outH=Math.round(outW/(sw/sh));
+  const outW=1800;const outH=Math.round(outW/targetCropRatio());
   const canvas=document.createElement("canvas");canvas.width=outW;canvas.height=outH;
   const ctx=canvas.getContext("2d");if(!ctx){setMessage("사진 편집을 시작하지 못했어.");return;}
   ctx.drawImage(image,sx,sy,sw,sh,0,0,outW,outH);
@@ -94,7 +96,7 @@ export default function Admin(){
   const edited=new File([blob],cropFile.name.replace(/\\.[^.]+$/,"")+".jpg",{type:"image/jpeg"});
   const completed=[...cropDone,edited];
   if(cropIndex+1<cropQueue.length){setCropDone(completed);setCropIndex(cropIndex+1);setCropFile(cropQueue[cropIndex+1]);setCropZoom(1);setCropOffset({x:0,y:0});setCropRect({x:8,y:8,w:84,h:84});return;}
-  if(cropTarget==="product"){setImages(completed);setMessage("사진 편집 완료. 판매글을 저장하면 반영돼.");}
+  if(cropTarget==="product"){setImages(completed);setMessage("상세 페이지용 사진 편집 완료.");} else if(cropTarget==="product_listing"){setListingImage(completed[0]);setMessage("상품 목록 카드용 사진 편집 완료. 판매글을 저장하면 반영돼.");}
   else if(typeof cropTarget==="string"&&cropTarget.startsWith("setting:")){await uploadSetting(cropTarget.slice(8),completed[0]);}
   setCropFile(null);setCropQueue([]);setCropDone([]);setCropTarget(null);
  }
@@ -130,8 +132,8 @@ export default function Admin(){
   await loadAnalytics();
  }
  async function login(e:any){e.preventDefault();const {error}=await supabase.auth.signInWithPassword({email,password});setMessage(error?.message||"로그인되었습니다.");}
- function clearForm(){setEditingId(null);setEditingImages([]);setTitle("");setPrice("");setCategory("");setScientificName("");setOrigin("");setSpecimenSize("");setSex("");setSpecimenDescription("");setImages([]);}
- function edit(p:Product){setEditingId(p.id);setEditingImages(p.image_urls?.length?p.image_urls:(p.image_url?[p.image_url]:[]));setTitle(p.title||"");setPrice(p.price||"");setCategory(p.category||"");setScientificName(p.scientific_name||"");setOrigin(p.origin||"");setSpecimenSize(p.specimen_size||"");setSex(p.sex||"");setSpecimenDescription(p.specimen_description||"");setImages([]);setMessage("수정할 내용을 입력한 뒤 저장해 주세요.");setTimeout(()=>editorRef.current?.scrollIntoView({behavior:"smooth",block:"start"}),50);}
+ function clearForm(){setEditingId(null);setEditingImages([]);setListingImage(null);setTitle("");setPrice("");setCategory("");setScientificName("");setOrigin("");setSpecimenSize("");setSex("");setSpecimenDescription("");setImages([]);}
+ function edit(p:Product){setEditingId(p.id);setEditingImages(p.image_urls?.length?p.image_urls:(p.image_url?[p.image_url]:[]));setTitle(p.title||"");setPrice(p.price||"");setCategory(p.category||"");setScientificName(p.scientific_name||"");setOrigin(p.origin||"");setSpecimenSize(p.specimen_size||"");setSex(p.sex||"");setSpecimenDescription(p.specimen_description||"");setImages([]);setListingImage(null);setMessage("수정할 내용을 입력한 뒤 저장해 주세요.");setTimeout(()=>editorRef.current?.scrollIntoView({behavior:"smooth",block:"start"}),50);}
  async function add(e:any){
   e.preventDefault();setMessage("");
   let image_urls=editingId!==null?editingImages:[];
@@ -194,7 +196,7 @@ export default function Admin(){
   <label>성별<input value={sex} onChange={e=>setSex(e.target.value)} placeholder="수컷 / 암컷 / 한쌍"/></label>
   <label>가격<input value={price} onChange={e=>setPrice(e.target.value)} placeholder="가격 협의"/></label>
   <label>개체 설명<textarea value={specimenDescription} onChange={e=>setSpecimenDescription(e.target.value)} placeholder="혈통, 우화일, 먹이, 특징 등 개체에 대한 설명을 작성해 주세요."/></label>
-  <label>사진 여러 장 선택 가능<input type="file" accept="image/*" multiple onChange={e=>{const files=Array.from(e.target.files||[]);if(files.length)beginCrop(files,"product");e.currentTarget.value="";}}/><small>{editingId!==null?"기존 사진은 유지돼. 새 사진을 선택하면 편집 후 사진 전체가 교체돼.":"여러 장을 선택하면 한 장씩 편집할 수 있어."}</small>{images.length>0&&<small>편집 완료된 새 사진: {images.length}장</small>}{editingId!==null&&editingImages.length>0&&images.length===0&&<small>현재 등록된 사진: {editingImages.length}장</small>}</label>
+  <label>상세 페이지 사진 (여러 장 가능)<input type="file" accept="image/*" multiple onChange={e=>{const files=Array.from(e.target.files||[]);if(files.length)beginCrop(files,"product");e.currentTarget.value="";}}/><small>{editingId!==null?"기존 사진은 유지돼. 새 사진을 선택하면 편집 후 사진 전체가 교체돼.":"여러 장을 선택하면 한 장씩 편집할 수 있어."}</small>{images.length>0&&<small>편집 완료된 새 사진: {images.length}장</small>}{editingId!==null&&editingImages.length>0&&images.length===0&&<small>현재 등록된 사진: {editingImages.length}장</small>}</label>
   <button type="submit">{editingId!==null?"수정 내용 저장":"판매글 등록"}</button>{editingId!==null&&<button type="button" onClick={clearForm}>수정 취소</button>}
  </form>
  <h2 className="adminHeading">등록된 판매글</h2>{items.map(p=><div className="adminItem" key={p.id}><span>{p.title} · {p.is_sold?"판매완료":"판매중"}</span><div><button type="button" onClick={()=>edit(p)}>수정</button><button type="button" onClick={()=>toggle(p)}>{p.is_sold?"판매중으로":"판매완료로"}</button><button type="button" className="danger" onClick={()=>remove(p.id)}>삭제</button></div></div>)}
@@ -224,7 +226,7 @@ export default function Admin(){
     </div>
    </div>
    <div className="photoCropControls">
-    <label>사진 비율<select value={cropRatio} onChange={e=>{setCropRatio(e.target.value);setCropZoom(1);setCropOffset({x:0,y:0});}}><option value="original">원본 비율</option><option value="1:1">정사각형 1:1</option><option value="4:3">가로형 4:3</option><option value="16:9">와이드 16:9</option><option value="3:4">세로형 3:4</option></select></label>
+    <label>표시 영역 비율 <strong>{targetCropRatio().toFixed(2)} : 1 (자동 고정)</strong></label>
     <label>확대 / 축소 <strong>{Math.round(cropZoom*100)}%</strong><input type="range" min="1" max="3" step=".01" value={cropZoom} onChange={e=>setCropZoom(Number(e.target.value))}/></label>
    </div>
    <div className="photoCropActions"><button type="button" className="photoCropReset" onClick={()=>{setCropZoom(1);setCropOffset({x:0,y:0});setCropRect({x:8,y:8,w:84,h:84});}}>자르기 영역 초기화</button><button type="button" onClick={finishCrop}> {cropIndex+1<cropQueue.length?"다음 사진":"편집 완료"} </button></div>
