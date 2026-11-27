@@ -16,8 +16,10 @@ export default async function About() {
     <section className="section aboutPhilosophy">
       <p className="eyebrow">OUR PHILOSOPHY</p>
       <h2>Small wonders. Endless fascination.</h2>
-      <p className="bodyCopy">작은 생명 안에 담긴 놀라운 형태와 생명력. KL BEETLE은 곤충이 가진 고유한 아름다움과 브리딩의 즐거움을 소중히 생각합니다. 정성스럽게 사육하고 관찰한 개체들을 소개합니다.</p>
-      <p className="bodyCopy">한 마리의 곤충이 자라 성충이 되기까지의 과정에는 세심한 관리와 꾸준한 관찰이 필요합니다. 개체마다 다른 특징을 살피고 사육 과정과 혈통을 기록하며, 건강한 환경에서 이어지는 브리딩을 중요하게 생각합니다. KL BEETLE은 그 과정에서 발견한 곤충의 매력과 소중한 컬렉션을 함께 나누고자 합니다.</p>
+      <div className="aboutPhilosophyText">
+        <p className="bodyCopy">작은 생명 안에 담긴 놀라운 형태와 생명력. KL BEETLE은 곤충이 가진 고유한 아름다움과 브리딩의 즐거움을 소중히 생각합니다. 정성스럽게 사육하고 관찰한 개체들을 소개합니다.</p>
+        <p className="bodyCopy">한 마리의 곤충이 자라 성충이 되기까지의 과정에는 세심한 관리와 꾸준한 관찰이 필요합니다. 개체마다 다른 특징을 살피고 사육 과정과 혈통을 기록하며, 건강한 환경에서 이어지는 브리딩을 중요하게 생각합니다. KL BEETLE은 그 과정에서 발견한 곤충의 매력과 소중한 컬렉션을 함께 나누고자 합니다.</p>
+      </div>
       <div className="aboutPhilosophyImage"><img src={settings.about_philosophy_image||imageDefaults.philosophy} alt="KL BEETLE breeding and nature"/></div>
     </section>
     <section className="aboutGrid section">
