@@ -226,7 +226,7 @@ export default function Admin(){
    <div className="photoCropWorkspace">
     <div className="photoCropEditorColumn">
      <strong className="photoCropSectionTitle">원본 사진 · 표시할 영역 선택</strong>
-     <div ref={cropStageRef} className="photoCropStage" style={{aspectRatio:cropAspect(),width:`min(100%, calc(52vh * ${cropAspect()}))`,touchAction:"none"}} onPointerDown={cropStagePointerDown} onPointerMove={cropStagePointerMove} onPointerUp={()=>{cropDragRef.current=null;}} onPointerCancel={()=>{cropDragRef.current=null;}}>
+     <div ref={cropStageRef} className="photoCropStage" style={{aspectRatio:cropAspect(),width:`min(100%, calc(68vh * ${cropAspect()}))`,touchAction:"none"}} onPointerDown={cropStagePointerDown} onPointerMove={cropStagePointerMove} onPointerUp={()=>{cropDragRef.current=null;}} onPointerCancel={()=>{cropDragRef.current=null;}}>
       {cropUrl&&<img src={cropUrl} alt="편집할 사진" draggable={false} style={{transform:"translate(-50%,-50%)"}}/>}
       <div className="photoCropSelection" style={{left:`${cropRect.x}%`,top:`${cropRect.y}%`,width:`${cropRect.w}%`,height:`${cropRect.h}%`}}>
        <span className="photoCropSelectionLabel">자를 영역</span>
