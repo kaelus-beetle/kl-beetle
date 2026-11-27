@@ -30,7 +30,7 @@ export default function Admin(){
  async function load(){const {data,error}=await supabase.from("products").select("*").order("created_at",{ascending:false});if(error){setMessage(error.message);return;}setItems((data||[]) as Product[]);}
  useEffect(()=>{if(user)load();},[user]);
  useEffect(()=>{if(!cropFile){setCropUrl("");setCropSize({width:0,height:0});return;}const url=URL.createObjectURL(cropFile);setCropUrl(url);const img=new Image();img.onload=()=>{setCropSize({width:img.naturalWidth,height:img.naturalHeight});};img.src=url;return()=>URL.revokeObjectURL(url);},[cropFile]);
- useEffect(()=>{if(!cropSize.width||!cropSize.height)return;const target=cropPreviewInfo();const ratio=target.ratio;const sourceAspect=cropSize.width/cropSize.height;const ratioPercent=ratio/sourceAspect;const maxW=Math.min(100,target.width/cropSize.width*100,(target.height/cropSize.height*100)*ratioPercent);const maxH=maxW/ratioPercent;const w=maxW*.84,h=maxH*.84;setCropRect({x:(100-w)/2,y:(100-h)/2,w,h});},[cropSize.width,cropSize.height,cropTarget,cropPreviewDevice]);
+ useEffect(()=>{if(!cropSize.width||!cropSize.height)return;const ratioPercent=cropPreviewInfo().ratio/(cropSize.width/cropSize.height);const maxW=Math.min(100,100*ratioPercent);const maxH=maxW/ratioPercent;const w=maxW*.88,h=maxH*.88;setCropRect({x:(100-w)/2,y:(100-h)/2,w,h});},[cropSize.width,cropSize.height,cropTarget,cropPreviewDevice]);
  function cropPreviewInfo(){
   const key=cropTarget==="product"||cropTarget==="product_listing"?"product_listing":typeof cropTarget==="string"&&cropTarget.startsWith("setting:")?cropTarget.slice(8):"";
   const targets:Record<string,{label:string;pcWidth:number;pcHeight:number;mobileWidth:number;mobileHeight:number}>={
@@ -53,10 +53,9 @@ export default function Admin(){
  }
  function targetCropRatio(){return cropPreviewInfo().ratio;}
  function cropMaxBounds(){
-  const target=cropPreviewInfo();
-  const sourceW=Math.max(1,cropSize.width),sourceH=Math.max(1,cropSize.height);
-  const ratioPercent=target.ratio/(sourceW/sourceH);
-  const maxW=Math.min(100,target.width/sourceW*100,(target.height/sourceH*100)*ratioPercent);
+  const sourceAspect=Math.max(0.0001,cropSize.width)/Math.max(1,cropSize.height);
+  const ratioPercent=cropPreviewInfo().ratio/sourceAspect;
+  const maxW=Math.min(100,100*ratioPercent);
   const maxH=maxW/ratioPercent;
   return {maxW,maxH,ratioPercent};
  }
@@ -89,9 +88,7 @@ export default function Admin(){
   const ratioPercent=targetCropRatio()/(rect.width/rect.height);
   const availableX=left?o.x+o.w:100-o.x;
   const availableY=top?o.y+o.h:100-o.y;
-  const target=cropPreviewInfo();
-  const maxTargetWidth=Math.min(100,target.width/cropSize.width*100,(target.height/cropSize.height*100)*ratioPercent);
-  const maxWidth=Math.min(availableX,availableY*ratioPercent,maxTargetWidth);
+  const maxWidth=Math.min(availableX,availableY*ratioPercent);
   const horizontalDelta=left?-dx:dx;
   const verticalDelta=top?-dy:dy;
   const widthDelta=Math.abs(horizontalDelta)>=Math.abs(verticalDelta*ratioPercent)?horizontalDelta:verticalDelta*ratioPercent;
@@ -225,7 +222,7 @@ export default function Admin(){
  {cropFile&&<div className="photoCropOverlay" role="dialog" aria-modal="true" aria-label="사진 편집">
   <div className="photoCropDialog">
    <div className="photoCropHeader"><div><p className="eyebrow">KL BEETLE / PHOTO EDITOR</p><h2>사진 위치 및 크기 조절</h2><small>{cropIndex+1} / {cropQueue.length}장 편집 중</small></div><button type="button" onClick={()=>{setCropFile(null);setCropQueue([]);setCropDone([]);setCropTarget(null);}}>닫기</button></div>
-   <p className="photoCropHint">사이트에 표시되는 사진의 실제 크기를 최대 자르기 크기로 제한했어. 네 꼭짓점은 표시 비율과 최대 가로·세로 픽셀을 넘지 않고, 안쪽을 드래그하면 위치를 옮길 수 있어.</p>
+   <p className="photoCropHint">사진 위 테두리 안쪽을 드래그해 위치를 옮기고, 네 모서리를 드래그해 자를 영역을 자유롭게 키우거나 줄여줘. 처음부터 사진 대부분이 선택돼 있어.</p>
    <div className="photoCropWorkspace">
     <div className="photoCropEditorColumn">
      <strong className="photoCropSectionTitle">원본 사진 · 표시할 영역 선택</strong>
@@ -239,8 +236,8 @@ export default function Admin(){
     </div>
    </div>
    <div className="photoCropControls">
-    <label>표시 영역 최대 크기 <strong>{cropPreviewInfo().width} × {cropPreviewInfo().height}px</strong></label>
-    <label>확대 / 축소 <strong>{Math.round(cropZoom*100)}%</strong><input type="range" min="1" max="3" step=".01" value={cropZoom} onChange={e=>setCropZoom(Number(e.target.value))}/></label>
+    <label>저장 비율 <strong>{cropPreviewInfo().width} : {cropPreviewInfo().height}</strong></label>
+    <label>조절 방법 <strong>테두리 이동 · 네 모서리 크기 조절</strong></label>
    </div>
    <div className="photoCropActions"><button type="button" className="photoCropReset" onClick={()=>{setCropRect(initialCropRect());}}>자르기 영역 초기화</button><button type="button" onClick={finishCrop}> {cropIndex+1<cropQueue.length?"다음 사진":"편집 완료"} </button></div>
   </div>
