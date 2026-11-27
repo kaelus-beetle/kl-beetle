@@ -42,6 +42,12 @@ export async function POST(request: NextRequest) {
     if (!url || !key) return NextResponse.json({ ok: false }, { status: 503 });
 
     const body = await request.json().catch(() => ({}));
+    if (body.event_type === "duration" && typeof body.event_id === "string") {
+      const seconds = Math.max(0, Math.min(86400, Math.floor(Number(body.duration_seconds) || 0)));
+      const db = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
+      const { error } = await db.rpc("record_visitor_duration", { p_event_id: body.event_id, p_duration_seconds: seconds });
+      return NextResponse.json({ ok: !error }, { status: error ? 500 : 200 });
+    }
     const pagePath = typeof body.page_path === "string" ? body.page_path.slice(0, 500) : "/";
     if (!pagePath.startsWith("/") || pagePath.startsWith("/admin") || pagePath.startsWith("/api/")) {
       return NextResponse.json({ ok: true });
@@ -50,14 +56,45 @@ export async function POST(request: NextRequest) {
     const forwarded = request.headers.get("x-forwarded-for");
     const ip = forwarded?.split(",")[0]?.trim() || request.headers.get("x-real-ip") || null;
     const ua = request.headers.get("user-agent") || "";
-    const visitorId = request.cookies.get("klb_visitor")?.value || randomUUID();
+    const existingVisitor = request.cookies.get("klb_visitor")?.value;
+    const visitorId = existingVisitor || randomUUID();
+    const eventId = typeof body.event_id === "string" && /^[0-9a-f-]{36}$/i.test(body.event_id) ? body.event_id : randomUUID();
+    const rawReferrer = typeof body.referrer === "string" ? body.referrer.slice(0, 2000) : "";
+    let referrerUrl: string | null = null;
+    let referrerSource = existingVisitor ? "직접 접속 / 내부 이동" : "직접 접속";
+    try {
+      if (rawReferrer) {
+        const parsed = new URL(rawReferrer);
+        const host = parsed.hostname.toLowerCase();
+        const ownHost = new URL(request.url).hostname.toLowerCase();
+        if (host !== ownHost && !host.endsWith(".vercel.app") || (host !== ownHost && host !== "kl-beetle.vercel.app")) {
+          referrerUrl = parsed.origin + parsed.pathname.slice(0, 300);
+          if (/google\./i.test(host)) referrerSource = "Google";
+          else if (/naver\./i.test(host)) referrerSource = "네이버";
+          else if (/daum\./i.test(host) || /kakao\./i.test(host)) referrerSource = "다음 / 카카오";
+          else if (/instagram\./i.test(host)) referrerSource = "Instagram";
+          else if (/youtube\./i.test(host) || /youtu\.be$/i.test(host)) referrerSource = "YouTube";
+          else if (/facebook\./i.test(host)) referrerSource = "Facebook";
+          else if (/x\.com$/i.test(host) || /twitter\./i.test(host)) referrerSource = "X (Twitter)";
+          else referrerSource = host;
+        }
+      }
+    } catch {}
+    const browserLanguage = typeof body.language === "string" ? body.language.slice(0, 40) : null;
+    const timezone = typeof body.timezone === "string" ? body.timezone.slice(0, 80) : null;
     const db = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
 
     const latitude = body.gps_consent === true && Number.isFinite(body.latitude) && body.latitude >= -90 && body.latitude <= 90 ? body.latitude : null;
     const longitude = body.gps_consent === true && Number.isFinite(body.longitude) && body.longitude >= -180 && body.longitude <= 180 ? body.longitude : null;
     const gpsAccuracy = latitude !== null && longitude !== null && Number.isFinite(body.accuracy) && body.accuracy >= 0 ? Math.min(body.accuracy, 100000) : null;
     const { error } = await db.from("visitor_logs").insert({
+      event_id: eventId,
       visitor_id: visitorId,
+      is_returning: Boolean(existingVisitor),
+      referrer_url: referrerUrl,
+      referrer_source: referrerSource,
+      browser_language: browserLanguage,
+      timezone,
       ip_address: ip,
       country: request.headers.get("x-vercel-ip-country"),
       region: decodeHeader(request.headers.get("x-vercel-ip-country-region")),
