@@ -77,8 +77,8 @@ export function VisitorTracker() {
     <div role="dialog" aria-modal="true" aria-labelledby="klb-location-title" style={{position:"fixed",inset:0,zIndex:10000,background:"rgba(0,0,0,.62)",display:"grid",placeItems:"center",padding:20}}>
       <div style={{width:"min(100%,430px)",background:"#f8f6f0",color:"#252820",padding:"28px 24px",boxShadow:"0 18px 60px rgba(0,0,0,.28)"}}>
         <p style={{fontSize:11,letterSpacing:3,color:"#747b62",margin:"0 0 12px"}}>KL BEETLE / LOCATION</p>
-        <h2 id="klb-location-title" style={{fontSize:22,fontWeight:500,margin:"0 0 14px"}}>정확한 방문 지역 확인</h2>
-        <p style={{fontSize:14,lineHeight:1.8,margin:"0 0 22px"}}>KL BEETLE은 한국 내 접속 환경 확인을 위해 위치 정보 제공을 요청합니다.</p>
+        <h2 id="klb-location-title" style={{fontSize:22,fontWeight:500,margin:"0 0 14px"}}>해외 접속 제한 안내</h2>
+        <p style={{fontSize:14,lineHeight:1.8,margin:"0 0 22px"}}>KL BEETLE은 대한민국 이용자를 위한 서비스로, 해외에서는 이용이 제한됩니다. 국내 접속 여부를 확인하기 위해 기기의 위치 정보 제공을 요청합니다.</p>
         <button onClick={acceptLocation} style={{width:"100%",padding:14,background:"#626a4e",color:"#fff",border:0,fontSize:14,cursor:"pointer"}}>위치 정보 제공 동의</button>
         <button onClick={declineLocation} style={{width:"100%",padding:13,marginTop:9,background:"transparent",color:"#4f5149",border:"1px solid #c9c6bb",fontSize:13,cursor:"pointer"}}>동의하지 않음</button>
         {locationMessage&&<p role="status" style={{fontSize:12,lineHeight:1.6,margin:"12px 0 0",color:"#8a4a3d"}}>{locationMessage}</p>}
