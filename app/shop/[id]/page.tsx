@@ -11,13 +11,13 @@ export default async function ProductDetail({params}:{params:Promise<{id:string}
  const {id}=await params;if(!/^\d+$/.test(id))notFound();
  const {data,error}=await supabase.from("products").select("*").eq("id",Number(id)).maybeSingle();if(error||!data)notFound();
  const p=data as Product;const photos=p.image_urls?.length?p.image_urls:(p.image_url?[p.image_url]:[]);
- const facts=[["학명",p.scientific_name],["산지",p.origin],["크기",p.specimen_size],["성별",p.sex],["분류",p.category]].filter((item):item is [string,string]=>Boolean(item[1]?.trim()));
+ const facts=[["학명",p.scientific_name],["산지",p.origin],["크기",p.specimen_size],["성별",p.sex]].filter((item):item is [string,string]=>Boolean(item[1]?.trim()));
  return <main className="subPage">
   <section className="pageIntro"><p className="eyebrow">KL BEETLE / SPECIMEN DETAIL</p><h1 style={{fontSize:"clamp(34px,6vw,64px)"}}>{p.title}</h1>{p.scientific_name&&<p style={{fontStyle:"italic"}}>{p.scientific_name}</p>}</section>
   <section style={{maxWidth:"1180px",margin:"0 auto",padding:"55px 7vw 100px",display:"grid",gridTemplateColumns:"minmax(0,1.1fr) minmax(280px,.9fr)",gap:"clamp(30px,6vw,80px)",alignItems:"start"}}>
    <ProductPhotoGallery title={p.title} photos={photos}/>
    <div style={{color:"#292d25"}}>
-    <p className="eyebrow">{p.category||"COLLECTION"}</p><h2 style={{fontSize:"30px",fontWeight:400,margin:"12px 0 22px"}}>{p.title}</h2>
+    <h2 style={{fontSize:"30px",fontWeight:400,margin:"12px 0 22px"}}>{p.title}</h2>
     {p.price&&<p style={{fontSize:"18px",fontWeight:600,marginBottom:"26px"}}>{p.price}</p>}
     {p.is_sold&&<p style={{display:"inline-block",background:"#34392d",color:"#fff",padding:"8px 14px",fontSize:"10px",letterSpacing:".12em"}}>SOLD OUT</p>}
     <div style={{borderTop:"1px solid #d5d0c5",borderBottom:"1px solid #d5d0c5",padding:"8px 0",margin:"22px 0"}}>
