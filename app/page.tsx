@@ -1,6 +1,8 @@
 // Trigger a fresh Vercel production deployment.
 import Link from "next/link";
 import { supabase, configured } from "../lib/supabase";
+
+export const dynamic = "force-dynamic";
 const fallbackHero = "https://images.unsplash.com/photo-1673295671950-dc7f478d1f22?auto=format&fit=crop&fm=jpg&q=85&w=3000";
 const fallbackGallery = [
   "https://upload.wikimedia.org/wikipedia/commons/5/54/Rainbow_stag_beetle.jpg",
