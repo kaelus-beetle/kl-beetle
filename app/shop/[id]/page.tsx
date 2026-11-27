@@ -1,8 +1,8 @@
 "use client";
-import { useState } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { supabase, configured } from "../../../lib/supabase";
+import ProductPhotoGallery from "./PhotoGallery";
 
 export const dynamic = "force-dynamic";
 type Product={id:number;title:string;price:string|null;image_url:string|null;image_urls?:string[]|null;category:string|null;is_sold:boolean;scientific_name:string|null;origin:string|null;specimen_size:string|null;sex:string|null;specimen_description:string|null};
@@ -13,20 +13,10 @@ export default async function ProductDetail({params}:{params:Promise<{id:string}
  const {data,error}=await supabase.from("products").select("*").eq("id",Number(id)).maybeSingle();if(error||!data)notFound();
  const p=data as Product;const photos=p.image_urls?.length?p.image_urls:(p.image_url?[p.image_url]:[]);
  const facts=[["학명",p.scientific_name],["산지",p.origin],["크기",p.specimen_size],["성별",p.sex],["분류",p.category]].filter((item):item is [string,string]=>Boolean(item[1]?.trim()));
- return <ProductDetailView p={p} photos={photos} facts={facts}/>;
-}
-
-function ProductDetailView({p,photos,facts}:{p:Product;photos:string[];facts:[string,string][]}){
- const [selected,setSelected]=useState(0);
  return <main className="subPage">
   <section className="pageIntro"><p className="eyebrow">KL BEETLE / SPECIMEN DETAIL</p><h1 style={{fontSize:"clamp(34px,6vw,64px)"}}>{p.title}</h1>{p.scientific_name&&<p style={{fontStyle:"italic"}}>{p.scientific_name}</p>}</section>
   <section style={{maxWidth:"1180px",margin:"0 auto",padding:"55px 7vw 100px",display:"grid",gridTemplateColumns:"minmax(0,1.1fr) minmax(280px,.9fr)",gap:"clamp(30px,6vw,80px)",alignItems:"start"}}>
-   <div>
-    <div style={{width:"100%",minHeight:"280px",background:"#d6d1c4",display:"grid",placeItems:"center"}}>
-     {photos.length?<img src={photos[selected]} alt={p.title+` 사진 ${selected+1}`} style={{display:"block",width:"100%",maxHeight:"720px",minHeight:"280px",objectFit:"contain",background:"#e2ded4"}}/>:<div style={{minHeight:"280px",display:"grid",placeItems:"center"}}>KL BEETLE</div>}
-    </div>
-    {photos.length>1&&<div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(76px,1fr))",gap:"10px",marginTop:"12px"}}>{photos.map((url,i)=><button key={url+i} type="button" onClick={()=>setSelected(i)} aria-label={`사진 ${i+1} 보기`} style={{padding:0,border:selected===i?"2px solid #626a4e":"1px solid #d5d0c5",background:"#e2ded4",cursor:"pointer",height:"86px",overflow:"hidden"}}><img src={url} alt="" style={{width:"100%",height:"100%",objectFit:"cover"}}/></button>)}</div>}
-   </div>
+   <ProductPhotoGallery title={p.title} photos={photos}/>
    <div style={{color:"#292d25"}}>
     <p className="eyebrow">{p.category||"COLLECTION"}</p><h2 style={{fontSize:"30px",fontWeight:400,margin:"12px 0 22px"}}>{p.title}</h2>
     {p.price&&<p style={{fontSize:"18px",fontWeight:600,marginBottom:"26px"}}>{p.price}</p>}
