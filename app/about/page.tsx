@@ -1,4 +1,6 @@
 import { supabase, configured } from "../../lib/supabase";
+
+export const dynamic = "force-dynamic";
 export default async function About() {
   let profileImage="";
   if(configured){const {data}=await supabase.from("site_settings").select("setting_value").eq("setting_key","about_image").maybeSingle();profileImage=data?.setting_value||"";}
