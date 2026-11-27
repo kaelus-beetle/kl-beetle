@@ -61,17 +61,23 @@ export default function Admin(){
  }
  function cropStagePointerMove(e:ReactPointerEvent<HTMLDivElement>){
   if(!cropDragRef.current||!cropStageRef.current)return;
-  const stage=cropStageRef.current;const rect=stage.getBoundingClientRect();
+  const rect=cropStageRef.current.getBoundingClientRect();
   const dx=(e.clientX-cropDragRef.current.startX)/rect.width*100;
   const dy=(e.clientY-cropDragRef.current.startY)/rect.height*100;
-  const o=cropDragRef.current.origin;const min=8;let next={...o}; const ratio=targetCropRatio(); const stageAspect=rect.width/rect.height; const ratioPercent=ratio/stageAspect;
+  const o=cropDragRef.current.origin;
+  let next={...o};
   if(cropDragRef.current.mode==="move"){
-   next.x=Math.max(0,Math.min(100-o.w,o.x+dx));next.y=Math.max(0,Math.min(100-o.h,o.y+dy));
+   next.x=Math.max(0,Math.min(100-o.w,o.x+dx));
+   next.y=Math.max(0,Math.min(100-o.h,o.y+dy));
   }else{
-   if(cropDragRef.current.mode.includes("w")){const x=Math.max(0,Math.min(o.x+o.w-min,o.x+dx));next.x=x;next.w=o.w-(x-o.x);}
-   if(cropDragRef.current.mode.includes("e"))next.w=Math.max(min,Math.min(100-o.x,o.w+dx));
-   if(cropDragRef.current.mode.includes("n")){const y=Math.max(0,Math.min(o.y+o.h-min,o.y+dy));next.y=y;next.h=o.h-(y-o.y);}
-   if(cropDragRef.current.mode.includes("s"))next.h=Math.max(min,Math.min(100-o.y,o.h+dy));
+   const mode=cropDragRef.current.mode;
+   const ratioPercent=targetCropRatio()/(rect.width/rect.height);
+   const left=mode.includes("w"),top=mode.includes("n");
+   let width=o.w+(left?-dx:dx);
+   const maxWidth=Math.min(left?o.x+o.w:100-o.x,(top?o.y+o.h:100-o.y)*ratioPercent);
+   width=Math.max(8,Math.min(maxWidth,width));
+   const height=width/ratioPercent;
+   next={x:left?o.x+o.w-width:o.x,y:top?o.y+o.h-height:o.y,w:width,h:height};
   }
   setCropRect(next);
  }
