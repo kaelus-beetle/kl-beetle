@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 
 export default function ProductPhotoGallery({title,photos}:{title:string;photos:string[]}){
  const [selected,setSelected]=useState(0);
@@ -7,7 +7,7 @@ export default function ProductPhotoGallery({title,photos}:{title:string;photos:
  const dragStart=useRef<{x:number;y:number}|null>(null);
  const showPrevious=()=>setSelected(current=>(current-1+photos.length)%photos.length);
  const showNext=()=>setSelected(current=>(current+1)%photos.length);
- const handleDragStart=(event:React.PointerEvent<HTMLImageElement>)=>{
+ const handleDragStart=(event:ReactPointerEvent<HTMLImageElement>)=>{
   dragStart.current={x:event.clientX,y:event.clientY};
   event.currentTarget.setPointerCapture(event.pointerId);
  };
