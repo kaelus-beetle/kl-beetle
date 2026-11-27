@@ -19,30 +19,40 @@ export function VisitorTracker() {
       return;
     }
     setGpsPosition(null);
-    try {
-      const consent = localStorage.getItem("klb_gps_consent");
-      const saved = localStorage.getItem("klb_gps_position");
-      const parsed = saved ? JSON.parse(saved) : null;
-      const validPosition = parsed &&
-        Number.isFinite(parsed.latitude) &&
-        Number.isFinite(parsed.longitude) &&
-        Number.isFinite(parsed.accuracy);
-      if (consent === "granted" && validPosition) {
-        setGpsPosition(parsed);
-        setShowLocationPrompt(false);
-        setAccessDenied(false);
-      } else if (consent === "declined") {
-        setShowLocationPrompt(false);
-        setAccessDenied(true);
-      } else {
+    setShowLocationPrompt(false);
+    setAccessDenied(false);
+    let cancelled = false;
+    fetch("/api/location-consent", { cache: "no-store" })
+      .then(response => response.json())
+      .then(result => {
+        if (cancelled) return;
+        if (result.hasConsent === true) {
+          try {
+            const saved = localStorage.getItem("klb_gps_position");
+            const parsed = saved ? JSON.parse(saved) : null;
+            if (parsed && Number.isFinite(parsed.latitude) && Number.isFinite(parsed.longitude) && Number.isFinite(parsed.accuracy)) {
+              localStorage.setItem("klb_gps_consent", "granted");
+              setGpsPosition(parsed);
+              setShowLocationPrompt(false);
+              setAccessDenied(false);
+              return;
+            }
+          } catch {}
+        }
+        try {
+          localStorage.removeItem("klb_gps_consent");
+          localStorage.removeItem("klb_gps_position");
+        } catch {}
         setAccessDenied(false);
         setShowLocationPrompt(true);
         setLocationMessage("");
-      }
-    } catch {
-      setAccessDenied(false);
-      setShowLocationPrompt(true);
-    }
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setShowLocationPrompt(true);
+        setLocationMessage("");
+      });
+    return () => { cancelled = true; };
   }, [pathname]);
 
   useEffect(() => {
@@ -96,7 +106,6 @@ export function VisitorTracker() {
         try {
           localStorage.setItem("klb_gps_consent", "granted");
           localStorage.setItem("klb_gps_position", JSON.stringify(value));
-          fetch("/api/location-consent", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(value), keepalive:true }).catch(()=>{});
         } catch {}
         setGpsPosition(value);
         window.dispatchEvent(new Event("klb-gps-consent-updated"));
