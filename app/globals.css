@@ -525,3 +525,50 @@
   overflow:hidden!important;
  }
 }
+
+
+/* SHOP detail: use an explicit layout class so mobile sizing applies on first navigation too. */
+.productDetailLayout{width:100%;box-sizing:border-box;}
+@media(max-width:760px){
+ .productDetailLayout{
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:stretch!important;
+  gap:26px!important;
+  padding:28px 0 70px!important;
+ }
+ .productDetailLayout>.productDetailGallery{
+  display:block!important;
+  width:100%!important;
+  max-width:100%!important;
+  min-width:0!important;
+  margin:0!important;
+ }
+ .productDetailLayout .productDetailMainPhoto{
+  display:block!important;
+  width:100%!important;
+  height:auto!important;
+  min-height:0!important;
+  overflow:hidden!important;
+ }
+ .productDetailLayout .productDetailPhotoButton{
+  display:block!important;
+  width:100%!important;
+  height:auto!important;
+  min-height:0!important;
+  max-height:none!important;
+  padding:0!important;
+  margin:0!important;
+ }
+ .productDetailLayout .productDetailPhotoButton img{
+  display:block!important;
+  width:100%!important;
+  height:auto!important;
+  max-width:none!important;
+  max-height:82svh!important;
+  min-height:0!important;
+  object-fit:contain!important;
+  object-position:center!important;
+ }
+ .productDetailLayout>div:last-child{width:100%;box-sizing:border-box;padding:0 7vw;}
+}
