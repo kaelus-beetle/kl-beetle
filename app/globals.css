@@ -184,3 +184,12 @@
 /* SHOP product photos: fill the image frame without blank margins */
 .shopProductImage{padding:0;}
 .shopProductImage img{width:100%;height:100%;object-fit:cover;object-position:center;}
+
+
+/* ABOUT species photos: preserve original proportions, no stretching */
+.speciesImage{height:auto;min-height:0;overflow:visible;background:transparent;display:block;}
+.speciesImage img{display:block;width:100%;height:auto;max-height:none;object-fit:initial;object-position:center;}
+@media(max-width:700px){
+ .speciesImage{height:auto;min-height:0;overflow:visible;}
+ .speciesImage img{width:100%;height:auto;max-height:none;object-fit:initial;}
+}
