@@ -5,7 +5,7 @@ const fallbackHero = "https://images.unsplash.com/photo-1673295671950-dc7f478d1f
 const fallbackGallery = [
   "https://upload.wikimedia.org/wikipedia/commons/5/54/Rainbow_stag_beetle.jpg",
   "https://upload.wikimedia.org/wikipedia/commons/1/15/Dynaste_hercule_%2814%29.jpg",
-  "https://upload.wikimedia.org/wikipedia/commons/2/2d/Stag_Beetle_%28Lamprima_adolphinae%29_%288430587514%29.jpg"
+  "https://upload.wikimedia.org/wikipedia/commons/e/e2/Stag_Beetle_%28Lamprima_adolphinae%29_%288430587514%29.jpg"
 ];
 export default async function Home() {
   let settings: Record<string, string> = {};
