@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase, configured } from "../../lib/supabase";
 
 type VisitorLog = { id:number; visitor_id:string; ip_address:string|null; country:string|null; region:string|null; city:string|null; device:string|null; operating_system:string|null; browser:string|null; page_path:string; created_at:string };
@@ -7,6 +7,7 @@ type Product = { id:number; title:string; price:string|null; image_url:string|nu
 const imageSlots=[{key:"hero_image",label:"메인 배경 사진"},{key:"about_image",label:"ABOUT 프로필 사진"},{key:"gallery_1",label:"갤러리 사진 1"},{key:"gallery_2",label:"갤러리 사진 2"},{key:"gallery_3",label:"갤러리 사진 3"}];
 
 export default function Admin(){
+ const editorRef=useRef<HTMLFormElement>(null);
  const [email,setEmail]=useState(""); const [password,setPassword]=useState(""); const [user,setUser]=useState<any>(null); const [items,setItems]=useState<Product[]>([]);
  const [title,setTitle]=useState(""); const [price,setPrice]=useState(""); const [category,setCategory]=useState("");
  const [scientificName,setScientificName]=useState(""); const [origin,setOrigin]=useState(""); const [specimenSize,setSpecimenSize]=useState(""); const [sex,setSex]=useState(""); const [specimenDescription,setSpecimenDescription]=useState("");
@@ -32,14 +33,14 @@ export default function Admin(){
  useEffect(()=>{if(user)loadAnalytics();},[user,items]);
  async function login(e:any){e.preventDefault();const {error}=await supabase.auth.signInWithPassword({email,password});setMessage(error?.message||"로그인되었습니다.");}
  function clearForm(){setEditingId(null);setEditingImages([]);setTitle("");setPrice("");setCategory("");setScientificName("");setOrigin("");setSpecimenSize("");setSex("");setSpecimenDescription("");setImages([]);}
- function edit(p:Product){setEditingId(p.id);setEditingImages(p.image_urls?.length?p.image_urls:(p.image_url?[p.image_url]:[]));setTitle(p.title||"");setPrice(p.price||"");setCategory(p.category||"");setScientificName(p.scientific_name||"");setOrigin(p.origin||"");setSpecimenSize(p.specimen_size||"");setSex(p.sex||"");setSpecimenDescription(p.specimen_description||"");setImages([]);setMessage("수정할 내용을 입력한 뒤 저장해 주세요.");window.scrollTo({top:0,behavior:"smooth"});}
+ function edit(p:Product){setEditingId(p.id);setEditingImages(p.image_urls?.length?p.image_urls:(p.image_url?[p.image_url]:[]));setTitle(p.title||"");setPrice(p.price||"");setCategory(p.category||"");setScientificName(p.scientific_name||"");setOrigin(p.origin||"");setSpecimenSize(p.specimen_size||"");setSex(p.sex||"");setSpecimenDescription(p.specimen_description||"");setImages([]);setMessage("수정할 내용을 입력한 뒤 저장해 주세요.");setTimeout(()=>editorRef.current?.scrollIntoView({behavior:"smooth",block:"start"}),50);}
  async function add(e:any){
   e.preventDefault();setMessage("");
   let image_urls=editingId!==null?editingImages:[];
   if(images.length){const uploaded:string[]=[];for(let i=0;i<images.length;i++){const file=images[i];const path=`products/${Date.now()}-${i}-${file.name.replace(/[^a-zA-Z0-9.-]/g,"_")}`;const {error:upErr}=await supabase.storage.from("kl-beetle-images").upload(path,file);if(upErr){setMessage("사진 업로드 실패: "+upErr.message);return;}uploaded.push(supabase.storage.from("kl-beetle-images").getPublicUrl(path).data.publicUrl);}image_urls=uploaded;}
   const image_url=image_urls[0]||null;
   const values={title,price,category,image_url,image_urls,scientific_name:scientificName,origin,specimen_size:specimenSize,sex,specimen_description:specimenDescription};
-  const result=editingId!==null?await supabase.from("products").update(values).eq("id",editingId):await supabase.from("products").insert({...values,is_sold:false});
+  const result=editingId!==null?await supabase.from("products").update(values).eq("id",editingId).select("id").single():await supabase.from("products").insert({...values,is_sold:false}).select("id").single();
   if(result.error){setMessage("저장 실패: "+result.error.message);return;}
   setMessage(editingId!==null?"판매글을 수정했습니다.":"판매글을 등록했습니다.");clearForm();await load();
  }
@@ -78,7 +79,7 @@ export default function Admin(){
   <button type="button" onClick={loadAnalytics} style={{marginTop:"18px",border:0,background:"#626a4e",color:"#fff",padding:"10px 16px",cursor:"pointer"}}>통계 새로고침</button>
  </section>
  <section className="adminSettings"><h2>사이트 사진 관리</h2><p>사진을 선택하면 저장 후 사이트에 자동 반영됩니다. 다시 배포할 필요가 없습니다.</p><div className="settingUploads">{imageSlots.map(slot=><label className="settingUpload" key={slot.key}>{slot.label}<input type="file" accept="image/*" disabled={uploading!==null} onChange={e=>{const file=e.target.files?.[0];if(file)uploadSetting(slot.key,file);e.currentTarget.value="";}}/>{uploading===slot.key&&<small>업로드 중...</small>}</label>)}</div></section>
- <form className="adminForm" onSubmit={add}>
+ <form ref={editorRef} id="product-editor" className="adminForm" onSubmit={add} style={{scrollMarginTop:"24px"}}>
   <h2>{editingId!==null?"판매글 수정":"판매글 등록"}</h2>
   <label>상품명<input value={title} onChange={e=>setTitle(e.target.value)} required/></label>
   <label>분류<input value={category} onChange={e=>setCategory(e.target.value)} placeholder="HERCULES / P. MUELLERI"/></label>
