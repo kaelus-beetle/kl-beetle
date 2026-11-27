@@ -264,3 +264,7 @@
 .photoCropWorkspace{display:block!important;}
 .photoCropEditorColumn{width:100%;}
 .photoCropStage{max-width:100%;}
+
+/* Keep the shop card crop frame identical on desktop and mobile */
+.shopProductImage{height:auto!important;aspect-ratio:3/2!important;padding:0!important;}
+.shopProductImage img{width:100%;height:100%;object-fit:cover;}
