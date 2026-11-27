@@ -193,3 +193,25 @@
  .speciesImage{height:auto;min-height:0;overflow:visible;}
  .speciesImage img{width:100%;height:auto;max-height:none;object-fit:initial;}
 }
+
+
+/* ADMIN photo crop editor */
+.photoCropOverlay{position:fixed;inset:0;z-index:1000;background:rgba(12,15,11,.78);display:flex;align-items:center;justify-content:center;padding:20px;overflow-y:auto;}
+.photoCropDialog{width:min(760px,100%);max-height:calc(100vh - 40px);overflow-y:auto;background:#eeeae1;color:#292d25;padding:clamp(18px,3vw,30px);box-shadow:0 20px 70px #0006;}
+.photoCropHeader{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;}
+.photoCropHeader h2{font-weight:400;font-size:clamp(21px,3vw,29px);margin:8px 0;}
+.photoCropHeader small,.photoCropHint{font-size:12px;color:#77786c;}
+.photoCropHeader button,.photoCropActions button{border:1px solid #626a4e;background:#626a4e;color:#fff;padding:11px 16px;font:inherit;font-size:12px;cursor:pointer;}
+.photoCropHint{margin:18px 0 12px;}
+.photoCropStage{position:relative;width:100%;max-height:52vh;margin:0 auto;background:#252820;overflow:hidden;cursor:grab;touch-action:none;user-select:none;}
+.photoCropStage:active{cursor:grabbing;}
+.photoCropStage img{position:absolute;left:50%;top:50%;width:100%;height:100%;max-width:none;object-fit:cover;pointer-events:none;user-select:none;}
+.photoCropFrameLabel{position:absolute;left:10px;bottom:10px;padding:5px 8px;background:#171a15a8;color:#fff;font-size:9px;letter-spacing:.1em;pointer-events:none;}
+.photoCropControls{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:20px;}
+.photoCropControls label{display:flex;flex-direction:column;gap:9px;font-size:12px;color:#626a4e;}
+.photoCropControls select{width:100%;padding:11px;border:1px solid #d5d0c5;background:#faf8f3;color:#292d25;font:inherit;}
+.photoCropControls input[type=range]{width:100%;accent-color:#626a4e;}
+.photoCropControls strong{font-size:11px;color:#292d25;}
+.photoCropActions{display:flex;justify-content:space-between;gap:12px;margin-top:22px;}
+.photoCropActions .photoCropReset{background:transparent;color:#626a4e;}
+@media(max-width:600px){.photoCropOverlay{padding:0;align-items:flex-start;}.photoCropDialog{min-height:100vh;max-height:none;padding:20px 16px;}.photoCropControls{grid-template-columns:1fr;gap:14px;}.photoCropStage{max-height:48vh;}.photoCropActions button{flex:1;}}
