@@ -331,3 +331,27 @@
  .productPhotoLightbox>img{max-width:100%;max-height:calc(100dvh - 70px);width:auto;height:auto;object-fit:contain;}
  .productPhotoLightboxClose{top:10px;right:10px;width:42px;height:42px;}
 }
+
+
+/* Mobile-only: larger product photos and clearer photo-only viewer */
+@media(max-width:700px){
+ .productDetailMainPhoto{width:100%;min-height:0;display:block;padding:0;background:#e2ded4;}
+ .productDetailPhotoButton{display:block;width:100%;height:min(78dvh,760px);min-height:360px;padding:0;margin:0;background:#e2ded4;}
+ .productDetailPhotoButton img{display:block;width:100%;height:100%;max-height:none;min-height:0;object-fit:contain;object-position:center;}
+ .productPhotoLightbox{padding:0;align-items:center;justify-content:center;background:rgba(5,6,5,.98);}
+ .productPhotoLightbox>img{display:block;width:100vw;height:100dvh;max-width:100vw;max-height:100dvh;object-fit:contain;object-position:center;}
+ .productPhotoLightboxClose{top:max(12px,env(safe-area-inset-top));right:12px;z-index:2;background:rgba(0,0,0,.55);}
+ .productPhotoLightboxCount{bottom:max(18px,env(safe-area-inset-bottom));}
+}
+
+/* Mobile-only ABOUT reading order: text first, related photo immediately below */
+@media(max-width:700px){
+ .aboutGrid{display:flex;flex-direction:column;align-items:stretch;gap:22px;}
+ .aboutGrid .aboutText{order:1;width:100%;}
+ .aboutGrid .profileBlank{order:2;width:100%;min-height:300px;margin:0;}
+ .species{display:flex;flex-direction:column;gap:42px;}
+ .species article{display:flex;flex-direction:column;align-items:stretch;}
+ .species article>.eyebrow,.species article>h2,.species article>p:last-child{order:1;}
+ .species article>.speciesImage{order:2;width:100%;min-height:0;height:auto;aspect-ratio:4/3;margin:18px 0 0;background:#dedbd2;}
+ .species article>.speciesImage img{width:100%;height:100%;max-width:100%;max-height:none;object-fit:contain;object-position:center;}
+}
