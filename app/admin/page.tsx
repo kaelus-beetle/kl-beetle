@@ -88,6 +88,7 @@ export default function Admin(){
    <table style={{width:"100%",borderCollapse:"collapse",fontSize:"11px",minWidth:"760px"}}>
     <thead><tr><th style={{textAlign:"left",padding:"10px 8px",borderBottom:"1px solid #bdb8ad"}}><input aria-label="현재 목록 전체 선택" type="checkbox" checked={visitorLogs.length>0&&visitorLogs.every(v=>selectedVisitorIds.includes(v.id))} onChange={e=>setSelectedVisitorIds(e.target.checked?visitorLogs.map(v=>v.id):[])} /></th>{["접속 시간","IP 주소","접속 지역","기기 / OS","브라우저","방문 페이지"].map(x=><th key={x} style={{textAlign:"left",padding:"10px 8px",borderBottom:"1px solid #bdb8ad"}}>{x}</th>)}</tr></thead>
     <tbody>{visitorLogs.map(v=><tr key={v.id}>
+     <td style={{padding:"10px 8px",borderBottom:"1px solid #e0dcd3"}}><input aria-label={`방문 기록 ${v.id} 선택`} type="checkbox" checked={selectedVisitorIds.includes(v.id)} onChange={e=>setSelectedVisitorIds(old=>e.target.checked?[...old,v.id]:old.filter(id=>id!==v.id))}/></td>
      <td style={{padding:"10px 8px",borderBottom:"1px solid #e0dcd3",whiteSpace:"nowrap"}}>{new Date(v.created_at).toLocaleString("ko-KR",{timeZone:"Asia/Seoul"})}</td>
      <td style={{padding:"10px 8px",borderBottom:"1px solid #e0dcd3",whiteSpace:"nowrap"}}>{v.ip_address||"확인 불가"}</td>
      <td style={{padding:"10px 8px",borderBottom:"1px solid #e0dcd3"}}>{[v.country,v.region,v.city].filter(Boolean).join(" · ")||"확인 불가"}</td>
