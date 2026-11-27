@@ -1,3 +1,4 @@
+// Trigger a fresh Vercel production deployment.
 import Link from "next/link";
 import { supabase, configured } from "../lib/supabase";
 const fallbackHero = "https://images.unsplash.com/photo-1597776941486-054bf4a8d7a1?auto=format&fit=crop&w=2200&q=90";
