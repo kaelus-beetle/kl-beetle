@@ -9,7 +9,7 @@ export default function Admin(){
  const [email,setEmail]=useState(""); const [password,setPassword]=useState(""); const [user,setUser]=useState<any>(null); const [items,setItems]=useState<Product[]>([]);
  const [title,setTitle]=useState(""); const [description,setDescription]=useState(""); const [price,setPrice]=useState(""); const [category,setCategory]=useState("");
  const [scientificName,setScientificName]=useState(""); const [origin,setOrigin]=useState(""); const [specimenSize,setSpecimenSize]=useState(""); const [sex,setSex]=useState(""); const [specimenDescription,setSpecimenDescription]=useState("");
- const [image,setImage]=useState<File|null>(null); const [message,setMessage]=useState(""); const [uploading,setUploading]=useState<string|null>(null);
+ const [image,setImage]=useState<File|null>(null); const [editingId,setEditingId]=useState<number|null>(null); const [message,setMessage]=useState(""); const [uploading,setUploading]=useState<string|null>(null);
  useEffect(()=>{if(!configured)return;supabase.auth.getSession().then(({data})=>setUser(data.session?.user||null));const {data:{subscription}}=supabase.auth.onAuthStateChange((_e,s)=>setUser(s?.user||null));return()=>subscription.unsubscribe();},[]);
  async function load(){const {data}=await supabase.from("products").select("*").order("created_at",{ascending:false});setItems((data||[]) as Product[]);}
  useEffect(()=>{if(user)load();},[user]);
@@ -31,7 +31,7 @@ export default function Admin(){
  <div className="adminTop"><p>로그인: {user.email}</p><button onClick={()=>supabase.auth.signOut()}>로그아웃</button></div>
  <section className="adminSettings"><h2>사이트 사진 관리</h2><p>사진을 선택하면 저장 후 사이트에 자동 반영됩니다. 다시 배포할 필요가 없습니다.</p><div className="settingUploads">{imageSlots.map(slot=><label className="settingUpload" key={slot.key}>{slot.label}<input type="file" accept="image/*" disabled={uploading!==null} onChange={e=>{const file=e.target.files?.[0];if(file)uploadSetting(slot.key,file);e.currentTarget.value="";}}/>{uploading===slot.key&&<small>업로드 중...</small>}</label>)}</div></section>
  <form className="adminForm" onSubmit={add}>
-  <h2>판매글 등록</h2>
+  <h2>{editingId!==null?"판매글 수정":"판매글 등록"}</h2>
   <label>상품명<input value={title} onChange={e=>setTitle(e.target.value)} required/></label>
   <label>분류<input value={category} onChange={e=>setCategory(e.target.value)} placeholder="HERCULES / P. MUELLERI"/></label>
   <label>학명<input value={scientificName} onChange={e=>setScientificName(e.target.value)} placeholder="예: Dynastes hercules"/></label>
@@ -42,9 +42,9 @@ export default function Admin(){
   <label>간단한 설명<textarea value={description} onChange={e=>setDescription(e.target.value)} placeholder="상품 목록에 표시될 짧은 소개"/></label>
   <label>개체 상세 설명<textarea value={specimenDescription} onChange={e=>setSpecimenDescription(e.target.value)} placeholder="혈통, 우화일, 먹이, 특징 등 상세한 설명을 작성해 주세요."/></label>
   <label>사진<input type="file" accept="image/*" onChange={e=>setImage(e.target.files?.[0]||null)}/></label>
-  <button>판매글 등록</button>
+  <button>{editingId!==null?"수정 내용 저장":"판매글 등록"}</button>{editingId!==null&&<button type="button" onClick={()=>{setEditingId(null);setTitle("");setDescription("");setPrice("");setCategory("");setScientificName("");setOrigin("");setSpecimenSize("");setSex("");setSpecimenDescription("");setImage(null);}}>수정 취소</button>}
  </form>
- <h2 className="adminHeading">등록된 판매글</h2>{items.map(p=><div className="adminItem" key={p.id}><span>{p.title} · {p.is_sold?"판매완료":"판매중"}</span><div><button onClick={()=>toggle(p)}>{p.is_sold?"판매중으로":"판매완료로"}</button><button className="danger" onClick={()=>remove(p.id)}>삭제</button></div></div>)}
+ <h2 className="adminHeading">등록된 판매글</h2>{items.map(p=><div className="adminItem" key={p.id}><span>{p.title} · {p.is_sold?"판매완료":"판매중"}</span><div><button onClick={()=>edit(p)}>수정</button><button onClick={()=>toggle(p)}>{p.is_sold?"판매중으로":"판매완료로"}</button><button className="danger" onClick={()=>remove(p.id)}>삭제</button></div></div>)}
  </>}
  {message&&<p className="notice">{message}</p>}</main>;
 }
