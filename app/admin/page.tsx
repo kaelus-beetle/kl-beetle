@@ -23,6 +23,7 @@ export default function Admin(){
  const [cropZoom,setCropZoom]=useState(1);
  const [cropOffset,setCropOffset]=useState({x:0,y:0});
  const [cropRect,setCropRect]=useState({x:8,y:8,w:84,h:84});
+ const [cropPreviewDevice,setCropPreviewDevice]=useState<"pc"|"mobile">("pc");
  const cropStageRef=useRef<HTMLDivElement>(null);
  const cropDragRef=useRef<{mode:"move"|"nw"|"ne"|"sw"|"se";startX:number;startY:number;origin:{x:number;y:number;w:number;h:number}}|null>(null); const [visitorLogs,setVisitorLogs]=useState<VisitorLog[]>([]); const [selectedVisitorIds,setSelectedVisitorIds]=useState<number[]>([]); const [totalViews,setTotalViews]=useState(0); const [uniqueVisitors,setUniqueVisitors]=useState(0); const [productViews,setProductViews]=useState<Record<number,number>>({}); const [editingId,setEditingId]=useState<number|null>(null); const [editingImages,setEditingImages]=useState<string[]>([]); const [message,setMessage]=useState(""); const [uploading,setUploading]=useState<string|null>(null);
  useEffect(()=>{if(!configured)return;supabase.auth.getSession().then(({data})=>setUser(data.session?.user||null));const {data:{subscription}}=supabase.auth.onAuthStateChange((_e,s)=>setUser(s?.user||null));return()=>subscription.unsubscribe();},[]);
@@ -30,6 +31,24 @@ export default function Admin(){
  useEffect(()=>{if(user)load();},[user]);
  useEffect(()=>{if(!cropFile){setCropUrl("");setCropSize({width:0,height:0});return;}const url=URL.createObjectURL(cropFile);setCropUrl(url);const img=new Image();img.onload=()=>setCropSize({width:img.naturalWidth,height:img.naturalHeight});img.src=url;return()=>URL.revokeObjectURL(url);},[cropFile]);
  function beginCrop(files:File[],target:"product"|string){if(!files.length)return;setCropQueue(files);setCropIndex(0);setCropDone([]);setCropTarget(target);setCropFile(files[0]);setCropRatio("4:3");setCropZoom(1);setCropOffset({x:0,y:0});setCropRect({x:8,y:8,w:84,h:84});}
+ function cropPreviewInfo(){
+  const key=cropTarget==="product"?"product":typeof cropTarget==="string"&&cropTarget.startsWith("setting:")?cropTarget.slice(8):"";
+  const targets:Record<string,{label:string;pc:number;mobile:number}>={
+   hero_image:{label:"홈 메인 배경",pc:16/9,mobile:2/3},
+   shop_intro_background:{label:"SHOP 상단 배경",pc:2.5,mobile:1.35},
+   about_intro_background:{label:"ABOUT 상단 배경",pc:2.5,mobile:1.35},
+   about_image:{label:"ABOUT 브리더 프로필",pc:1.45,mobile:1.2},
+   about_philosophy_image:{label:"ABOUT 철학 소개 사진",pc:1.45,mobile:1},
+   species_muelleri_image:{label:"뮤엘러리 사진 영역",pc:1.24,mobile:0.83},
+   species_hercules_image:{label:"헤라클레스 사진 영역",pc:1.24,mobile:0.83},
+   gallery_1:{label:"홈 갤러리 사진",pc:1.5,mobile:1.5},
+   gallery_2:{label:"홈 갤러리 사진",pc:1.5,mobile:1.5},
+   gallery_3:{label:"홈 갤러리 사진",pc:1.5,mobile:1.5},
+   product:{label:"SHOP 상품 카드 사진",pc:1.12,mobile:1.12}
+  };
+  const info=targets[key]||{label:"사진 표시 영역",pc:4/3,mobile:4/3};
+  return {...info,ratio:cropPreviewDevice==="pc"?info.pc:info.mobile};
+ }
  function cropAspect(){if(cropRatio==="original"&&cropSize.width&&cropSize.height)return cropSize.width/cropSize.height;const [w,h]=cropRatio.split(":").map(Number);return w/h;}
  function cropStagePointerDown(e:ReactPointerEvent<HTMLDivElement>){
   if(!cropStageRef.current)return;
@@ -183,12 +202,27 @@ export default function Admin(){
  {cropFile&&<div className="photoCropOverlay" role="dialog" aria-modal="true" aria-label="사진 편집">
   <div className="photoCropDialog">
    <div className="photoCropHeader"><div><p className="eyebrow">KL BEETLE / PHOTO EDITOR</p><h2>사진 위치 및 크기 조절</h2><small>{cropIndex+1} / {cropQueue.length}장 편집 중</small></div><button type="button" onClick={()=>{setCropFile(null);setCropQueue([]);setCropDone([]);setCropTarget(null);}}>닫기</button></div>
-   <p className="photoCropHint">사각형 안쪽을 드래그하면 영역이 이동하고, 네 모서리의 점을 드래그하면 자를 범위를 자유롭게 조절할 수 있어.</p>
-   <div ref={cropStageRef} className="photoCropStage" style={{aspectRatio:cropAspect(),width:`min(100%, calc(52vh * ${cropAspect()}))`,touchAction:"none"}} onPointerDown={cropStagePointerDown} onPointerMove={cropStagePointerMove} onPointerUp={()=>{cropDragRef.current=null;}} onPointerCancel={()=>{cropDragRef.current=null;}}>
-    {cropUrl&&<img src={cropUrl} alt="편집할 사진" draggable={false} style={{transform:`translate(calc(-50% + ${cropOffset.x}px),calc(-50% + ${cropOffset.y}px)) scale(${cropZoom})`}}/>}
-    <div className="photoCropSelection" style={{left:`${cropRect.x}%`,top:`${cropRect.y}%`,width:`${cropRect.w}%`,height:`${cropRect.h}%`}}>
-     <span className="photoCropSelectionLabel">자를 영역</span>
-     {(["nw","ne","sw","se"] as const).map(h=><span key={h} data-crop-handle={h} className={`photoCropHandle photoCropHandle-${h}`}/>)}
+   <p className="photoCropHint">사각형 안쪽을 드래그하면 영역이 이동하고, 네 모서리의 점을 드래그하면 자를 범위를 자유롭게 조절할 수 있어. 오른쪽은 실제 사이트에 표시될 프레임 비율 미리보기야.</p>
+   <div className="photoCropWorkspace">
+    <div className="photoCropEditorColumn">
+     <strong className="photoCropSectionTitle">사진 자르기 영역</strong>
+     <div ref={cropStageRef} className="photoCropStage" style={{aspectRatio:cropAspect(),width:`min(100%, calc(52vh * ${cropAspect()}))`,touchAction:"none"}} onPointerDown={cropStagePointerDown} onPointerMove={cropStagePointerMove} onPointerUp={()=>{cropDragRef.current=null;}} onPointerCancel={()=>{cropDragRef.current=null;}}>
+      {cropUrl&&<img src={cropUrl} alt="편집할 사진" draggable={false} style={{transform:`translate(calc(-50% + ${cropOffset.x}px),calc(-50% + ${cropOffset.y}px)) scale(${cropZoom})`}}/>}
+      <div className="photoCropSelection" style={{left:`${cropRect.x}%`,top:`${cropRect.y}%`,width:`${cropRect.w}%`,height:`${cropRect.h}%`}}>
+       <span className="photoCropSelectionLabel">자를 영역</span>
+       {(["nw","ne","sw","se"] as const).map(h=><span key={h} data-crop-handle={h} className={`photoCropHandle photoCropHandle-${h}`}/>)}
+      </div>
+     </div>
+    </div>
+    <div className="photoCropPreviewColumn">
+     <div className="photoCropPreviewHeading"><strong className="photoCropSectionTitle">실제 사이트 표시 미리보기</strong><div className="photoCropDeviceSwitch"><button type="button" className={cropPreviewDevice==="pc"?"active":""} onClick={()=>setCropPreviewDevice("pc")}>PC</button><button type="button" className={cropPreviewDevice==="mobile"?"active":""} onClick={()=>setCropPreviewDevice("mobile")}>모바일</button></div></div>
+     <small className="photoCropTargetName">{cropPreviewInfo().label} · {cropPreviewDevice==="pc"?"PC 화면":"모바일 화면"}</small>
+     <div className="photoCropActualFrame" style={{aspectRatio:cropPreviewInfo().ratio}}>
+      {cropUrl&&<div className="photoCropActualImage" style={{left:`${-cropRect.x/cropRect.w*100}%`,top:`${-cropRect.y/cropRect.h*100}%`,width:`${10000/cropRect.w}%`,height:`${10000/cropRect.h}%`}}>
+       <img src={cropUrl} alt="실제 표시 미리보기" draggable={false} style={{transform:`translate(calc(-50% + ${cropOffset.x}px),calc(-50% + ${cropOffset.y}px)) scale(${cropZoom})`}}/>
+      </div>}
+     </div>
+     <small className="photoCropPreviewNote">실제 사이트의 사진 프레임 비율을 기준으로 표시해. 최종 배치는 화면 크기에 따라 조금 달라질 수 있어.</small>
     </div>
    </div>
    <div className="photoCropControls">
