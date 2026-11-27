@@ -66,25 +66,7 @@ export default function Admin(){
   return {x:(100-w)/2,y:(100-h)/2,w,h};
  }
  function beginCrop(files:File[],target:"product"| "product_listing"|string){if(!files.length)return;setCropQueue(files);setCropIndex(0);setCropDone([]);setCropTarget(target);setCropFile(files[0]);setCropRatio("4:3");setCropZoom(1);setCropOffset({x:0,y:0});setCropRect({x:8,y:8,w:84,h:84});}
- function cropPreviewInfo(){
-  const key=cropTarget==="product"?"product":typeof cropTarget==="string"&&cropTarget.startsWith("setting:")?cropTarget.slice(8):"";
-  const targets:Record<string,{label:string;pc:number;mobile:number}>={
-   hero_image:{label:"홈 메인 배경",pc:16/9,mobile:2/3},
-   shop_intro_background:{label:"SHOP 상단 배경",pc:2.5,mobile:1.35},
-   about_intro_background:{label:"ABOUT 상단 배경",pc:2.5,mobile:1.35},
-   about_image:{label:"ABOUT 브리더 프로필",pc:1.45,mobile:1.2},
-   about_philosophy_image:{label:"ABOUT 철학 소개 사진",pc:1.45,mobile:1},
-   species_muelleri_image:{label:"뮤엘러리 사진 영역",pc:1.24,mobile:0.83},
-   species_hercules_image:{label:"헤라클레스 사진 영역",pc:1.24,mobile:0.83},
-   gallery_1:{label:"홈 갤러리 사진",pc:1.5,mobile:1.5},
-   gallery_2:{label:"홈 갤러리 사진",pc:1.5,mobile:1.5},
-   gallery_3:{label:"홈 갤러리 사진",pc:1.5,mobile:1.5},
-   product:{label:"SHOP 상품 카드 사진",pc:1.12,mobile:1.12}
-  };
-  const info=targets[key]||{label:"사진 표시 영역",pc:4/3,mobile:4/3};
-  return {...info,ratio:cropPreviewDevice==="pc"?info.pc:info.mobile};
- }
- function cropAspect(){return cropSize.width&&cropSize.height?cropSize.width/cropSize.height:4/3;}
+  function cropAspect(){return cropSize.width&&cropSize.height?cropSize.width/cropSize.height:4/3;}
  function cropStagePointerDown(e:ReactPointerEvent<HTMLDivElement>){
   if(!cropStageRef.current)return;
   const handle=(e.target as HTMLElement).closest("[data-crop-handle]") as HTMLElement|null;
