@@ -85,9 +85,16 @@ export default function Admin(){
   }
   const mode=cropDragRef.current.mode;
   const left=mode.includes("w"),top=mode.includes("n");
-  const ratioPercent=targetCropRatio()/(rect.width/rect.height);
   const availableX=left?o.x+o.w:100-o.x;
   const availableY=top?o.y+o.h:100-o.y;
+  if(cropTarget==="product_listing"){
+   const minSize=5;
+   const width=Math.max(minSize,Math.min(availableX,o.w+(left?-dx:dx)));
+   const height=Math.max(minSize,Math.min(availableY,o.h+(top?-dy:dy)));
+   setCropRect({x:left?o.x+o.w-width:o.x,y:top?o.y+o.h-height:o.y,w:width,h:height});
+   return;
+  }
+  const ratioPercent=targetCropRatio()/(rect.width/rect.height);
   const maxWidth=Math.min(availableX,availableY*ratioPercent);
   const horizontalDelta=left?-dx:dx;
   const verticalDelta=top?-dy:dy;
@@ -105,14 +112,15 @@ export default function Admin(){
   const sy=Math.max(0,Math.floor(cropRect.y/100*cropSize.height));
   const sw=Math.max(1,Math.min(cropSize.width-sx,Math.round(cropRect.w/100*cropSize.width)));
   const sh=Math.max(1,Math.min(cropSize.height-sy,Math.round(cropRect.h/100*cropSize.height)));
-  const outW=1800;const outH=Math.max(1,Math.round(outW/targetCropRatio()));
+  const outputRatio=cropTarget==="product_listing"?sw/sh:targetCropRatio();
+  const outW=1800;const outH=Math.max(1,Math.round(outW/outputRatio));
   const canvas=document.createElement("canvas");canvas.width=outW;canvas.height=outH;
   const ctx=canvas.getContext("2d");if(!ctx){setMessage("사진 편집을 시작하지 못했어.");return;}
   ctx.drawImage(image,sx,sy,sw,sh,0,0,outW,outH);
   const blob=await new Promise<Blob|null>(resolve=>canvas.toBlob(resolve,"image/jpeg",.92));
   if(!blob){setMessage("편집한 사진을 저장하지 못했어.");return;}
   const edited=new File([blob],cropFile.name.replace(/\\.[^.]+$/,"")+".jpg",{type:"image/jpeg"});
-  if(cropTarget==="product_listing"){setListingImage(edited);setMessage("SHOP 목록 대표 사진 편집 완료. 판매글을 저장하면 반영돼.");}
+  if(cropTarget==="product_listing"){setListingImage(edited);setListingImageRatio(`${(sw/sh).toFixed(3)}:1`);setMessage("SHOP 목록 대표 사진 편집 완료. 선택한 가로·세로 비율로 저장돼. 판매글을 저장하면 반영돼.");}
   else if(typeof cropTarget==="string"&&cropTarget.startsWith("setting:")){await uploadSetting(cropTarget.slice(8),edited);}
   setCropFile(null);setCropQueue([]);setCropDone([]);setCropTarget(null);
  }
