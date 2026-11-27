@@ -204,10 +204,10 @@ export default function Admin(){
  {cropFile&&<div className="photoCropOverlay" role="dialog" aria-modal="true" aria-label="사진 편집">
   <div className="photoCropDialog">
    <div className="photoCropHeader"><div><p className="eyebrow">KL BEETLE / PHOTO EDITOR</p><h2>사진 위치 및 크기 조절</h2><small>{cropIndex+1} / {cropQueue.length}장 편집 중</small></div><button type="button" onClick={()=>{setCropFile(null);setCropQueue([]);setCropDone([]);setCropTarget(null);}}>닫기</button></div>
-   <p className="photoCropHint">사각형 안쪽을 드래그하면 영역이 이동하고, 네 모서리의 점을 드래그하면 자를 범위를 자유롭게 조절할 수 있어. 오른쪽은 실제 사이트에 표시될 프레임 비율 미리보기야.</p>
+   <p className="photoCropHint">원본 사진 전체가 보여. 선택 사각형은 실제 표시 비율을 유지해. 네 꼭짓점으로 크기를 조절하고, 안쪽을 드래그해 위치를 옮겨줘.</p>
    <div className="photoCropWorkspace">
     <div className="photoCropEditorColumn">
-     <strong className="photoCropSectionTitle">사진 자르기 영역</strong>
+     <strong className="photoCropSectionTitle">원본 사진 · 표시할 영역 선택</strong>
      <div ref={cropStageRef} className="photoCropStage" style={{aspectRatio:cropAspect(),width:`min(100%, calc(52vh * ${cropAspect()}))`,touchAction:"none"}} onPointerDown={cropStagePointerDown} onPointerMove={cropStagePointerMove} onPointerUp={()=>{cropDragRef.current=null;}} onPointerCancel={()=>{cropDragRef.current=null;}}>
       {cropUrl&&<img src={cropUrl} alt="편집할 사진" draggable={false} style={{transform:`translate(calc(-50% + ${cropOffset.x}px),calc(-50% + ${cropOffset.y}px)) scale(${cropZoom})`}}/>}
       <div className="photoCropSelection" style={{left:`${cropRect.x}%`,top:`${cropRect.y}%`,width:`${cropRect.w}%`,height:`${cropRect.h}%`}}>
@@ -229,7 +229,7 @@ export default function Admin(){
     <label>표시 영역 비율 <strong>{targetCropRatio().toFixed(2)} : 1 (자동 고정)</strong></label>
     <label>확대 / 축소 <strong>{Math.round(cropZoom*100)}%</strong><input type="range" min="1" max="3" step=".01" value={cropZoom} onChange={e=>setCropZoom(Number(e.target.value))}/></label>
    </div>
-   <div className="photoCropActions"><button type="button" className="photoCropReset" onClick={()=>{setCropZoom(1);setCropOffset({x:0,y:0});setCropRect({x:8,y:8,w:84,h:84});}}>자르기 영역 초기화</button><button type="button" onClick={finishCrop}> {cropIndex+1<cropQueue.length?"다음 사진":"편집 완료"} </button></div>
+   <div className="photoCropActions"><button type="button" className="photoCropReset" onClick={()=>{setCropZoom(1);setCropOffset({x:0,y:0});setCropRect(initialCropRect());}}>자르기 영역 초기화</button><button type="button" onClick={finishCrop}> {cropIndex+1<cropQueue.length?"다음 사진":"편집 완료"} </button></div>
   </div>
  </div>}
  {message&&<p className="notice">{message}</p>}</main>;
