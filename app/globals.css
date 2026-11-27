@@ -82,6 +82,11 @@
 .aboutPhilosophyImage{grid-column:2;grid-row:3 / span 2;width:100%;max-width:420px;justify-self:end;margin:0;height:300px;overflow:hidden;background:#d4d0c4;}
 .aboutPhilosophyImage img{width:100%;height:100%;display:block;object-fit:cover;}
 .species article{min-width:0;}
-.speciesImage{width:100%;height:260px;margin-bottom:28px;overflow:hidden;background:#d8d4c9;}
+.speciesImage{width:100%;min-height:260px;margin-bottom:28px;overflow:hidden;background:transparent;display:flex;align-items:center;justify-content:center;}.speciesImage img{width:100%;height:auto;max-height:380px;display:block;object-fit:contain;}
 .speciesImage img{width:100%;height:100%;display:block;object-fit:cover;}
-@media(max-width:700px){.aboutPhilosophy{display:block}.aboutPhilosophyImage{max-width:100%;margin:24px 0 0;height:220px}.speciesImage{height:230px}}
+@media(max-width:700px){.aboutPhilosophy{display:block}.aboutPhilosophyImage{max-width:100%;margin:24px 0 0;height:220px}.speciesImage{min-height:220px}.speciesImage img{max-height:300px}}
+
+/* Natural forest atmosphere for the SHOP intro */
+.shopIntro{position:relative;isolation:isolate;background-image:linear-gradient(rgba(15,19,13,.48),rgba(15,19,13,.48)),url("https://cdn.myportfolio.com/ec60cecc-901c-4021-8130-5267ee3b3753/2602186f-abe6-4718-964a-9642d0ccb638_rw_1920.jpg?h=94fd710c32b012990d43b2a29c2f4aeb");background-position:center;background-size:cover;color:#f5f1e8;}
+.shopIntro .eyebrow,.shopIntro>p:last-child{color:#f5f1e8;}
+.shopIntro h1{text-shadow:0 2px 22px rgba(0,0,0,.4);}
