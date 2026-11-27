@@ -12,17 +12,26 @@ export function VisitorTracker() {
 
   useEffect(() => {
     if (!pathname || pathname.startsWith("/admin")) return;
+
+    // Location consent is required only when entering the SHOP section.
+    if (!pathname.startsWith("/shop")) {
+      setShowLocationPrompt(false);
+      setAccessDenied(false);
+      setLocationMessage("");
+      return;
+    }
+
+    setAccessDenied(false);
     try {
       const consent = localStorage.getItem("klb_gps_consent");
       if (consent === "granted") {
         const saved = localStorage.getItem("klb_gps_position");
         if (saved) setGpsPosition(JSON.parse(saved));
+        setShowLocationPrompt(false);
       } else {
-        // A declined visitor sees the consent gate again after a page reload.
+        // Ask again whenever the visitor enters SHOP or reloads while on SHOP.
         setShowLocationPrompt(true);
-        if (consent === "declined") {
-          setLocationMessage("대한민국에서만 KL BEETLE에 접속할 수 있어. 위치 정보 제공에 동의해야 이용할 수 있어.");
-        }
+        setLocationMessage("");
       }
     } catch {
       setShowLocationPrompt(true);
