@@ -53,6 +53,9 @@ export async function POST(request: NextRequest) {
     const visitorId = request.cookies.get("klb_visitor")?.value || randomUUID();
     const db = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
 
+    const latitude = body.gps_consent === true && Number.isFinite(body.latitude) && body.latitude >= -90 && body.latitude <= 90 ? body.latitude : null;
+    const longitude = body.gps_consent === true && Number.isFinite(body.longitude) && body.longitude >= -180 && body.longitude <= 180 ? body.longitude : null;
+    const gpsAccuracy = latitude !== null && longitude !== null && Number.isFinite(body.accuracy) && body.accuracy >= 0 ? Math.min(body.accuracy, 100000) : null;
     const { error } = await db.from("visitor_logs").insert({
       visitor_id: visitorId,
       ip_address: ip,
@@ -63,7 +66,11 @@ export async function POST(request: NextRequest) {
       operating_system: getOS(ua),
       browser: getBrowser(ua),
       user_agent: ua.slice(0, 1000),
-      page_path: pagePath
+      page_path: pagePath,
+      gps_latitude: latitude,
+      gps_longitude: longitude,
+      gps_accuracy: gpsAccuracy,
+      gps_consent_at: latitude !== null && longitude !== null ? new Date().toISOString() : null
     });
     if (error) {
       console.error("Visitor tracking insert failed:", error.message);
