@@ -13,7 +13,7 @@ export default function ProductPhotoGallery({title,photos}:{title:string;photos:
  },[lightboxOpen]);
  return <div className="productDetailGallery">
   <div className="productDetailMainPhoto">
-   {photos.length?<button type="button" className="productDetailPhotoButton" onClick={()=>setLightboxOpen(true)} aria-label="사진 크게 보기">
+   {photos.length?<button type="button" className="productDetailPhotoButton" onClick={()=>{if(window.matchMedia("(max-width: 700px)").matches)setLightboxOpen(true);}} aria-label="사진 크게 보기">
     <img src={photos[selected]} alt={title+` 사진 ${selected+1}`}/>
     <span className="productDetailZoomHint">사진을 누르면 크게 볼 수 있습니다</span>
    </button>:<div className="productDetailEmpty">KL BEETLE</div>}
