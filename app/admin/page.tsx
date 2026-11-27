@@ -105,7 +105,7 @@ export default function Admin(){
   const sy=Math.max(0,Math.floor(cropRect.y/100*cropSize.height));
   const sw=Math.max(1,Math.min(cropSize.width-sx,Math.round(cropRect.w/100*cropSize.width)));
   const sh=Math.max(1,Math.min(cropSize.height-sy,Math.round(cropRect.h/100*cropSize.height)));
-  const outW=1800;const outH=Math.max(1,Math.round(outW/(sw/sh)));
+  const outW=1800;const outH=Math.max(1,Math.round(outW/targetCropRatio()));
   const canvas=document.createElement("canvas");canvas.width=outW;canvas.height=outH;
   const ctx=canvas.getContext("2d");if(!ctx){setMessage("사진 편집을 시작하지 못했어.");return;}
   ctx.drawImage(image,sx,sy,sw,sh,0,0,outW,outH);
