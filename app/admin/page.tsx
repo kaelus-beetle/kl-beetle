@@ -216,14 +216,6 @@ export default function Admin(){
       </div>
      </div>
     </div>
-    <div className="photoCropPreviewColumn">
-     <div className="photoCropPreviewHeading"><strong className="photoCropSectionTitle">실제 사이트 표시 미리보기</strong><div className="photoCropDeviceSwitch"><button type="button" className={cropPreviewDevice==="pc"?"active":""} onClick={()=>setCropPreviewDevice("pc")}>PC</button><button type="button" className={cropPreviewDevice==="mobile"?"active":""} onClick={()=>setCropPreviewDevice("mobile")}>모바일</button></div></div>
-     <small className="photoCropTargetName">{cropPreviewInfo().label} · {cropPreviewDevice==="pc"?"PC 화면":"모바일 화면"}</small>
-     <div className="photoCropActualFrame" style={{aspectRatio:cropPreviewInfo().ratio}}>
-      {cropUrl&&<img src={cropUrl} alt="실제 표시 미리보기" draggable={false} style={{objectPosition:`${cropRect.x+cropRect.w/2}% ${cropRect.y+cropRect.h/2}%`}}/>}
-     </div>
-     <small className="photoCropPreviewNote">표시 프레임 비율: {cropPreviewInfo().ratio.toFixed(2)} : 1 · 실제 사이트의 해당 사진 영역 비율을 기준으로 한 미리보기야.</small>
-    </div>
    </div>
    <div className="photoCropControls">
     <label>표시 영역 비율 <strong>{targetCropRatio().toFixed(2)} : 1 (자동 고정)</strong></label>
