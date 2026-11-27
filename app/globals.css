@@ -226,3 +226,8 @@
  .speciesImage{height:420px;min-height:420px;margin-bottom:24px;}
  .speciesImage img{width:100%;height:100%;object-fit:contain;}
 }
+
+
+/* ABOUT species photos: fill the frame edge-to-edge, cropping if needed */
+.speciesImage{overflow:hidden;background:#dedbd2;}
+.speciesImage img{width:100%;height:100%;max-width:none;max-height:none;object-fit:cover;object-position:center;}
