@@ -139,7 +139,9 @@ export default function Admin(){
   let image_urls=editingId!==null?editingImages:[];
   if(images.length){const uploaded:string[]=[];for(let i=0;i<images.length;i++){const file=images[i];const path=`products/${Date.now()}-${i}-${file.name.replace(/[^a-zA-Z0-9.-]/g,"_")}`;const {error:upErr}=await supabase.storage.from("kl-beetle-images").upload(path,file);if(upErr){setMessage("사진 업로드 실패: "+upErr.message);return;}uploaded.push(supabase.storage.from("kl-beetle-images").getPublicUrl(path).data.publicUrl);}image_urls=uploaded;}
   const image_url=image_urls[0]||null;
-  const values={title,price,category,image_url,image_urls,scientific_name:scientificName,origin,specimen_size:specimenSize,sex,specimen_description:specimenDescription};
+  let listing_image_url:string|null|undefined=editingId!==null?undefined:null;
+  if(listingImage){const path=`products/listing-${Date.now()}-${listingImage.name.replace(/[^a-zA-Z0-9.-]/g,"_")}`;const {error:upErr}=await supabase.storage.from("kl-beetle-images").upload(path,listingImage);if(upErr){setMessage("목록용 사진 업로드 실패: "+upErr.message);return;}listing_image_url=supabase.storage.from("kl-beetle-images").getPublicUrl(path).data.publicUrl;}
+  const values={title,price,category,image_url,image_urls,...(listing_image_url!==undefined?{listing_image_url}:{}),scientific_name:scientificName,origin,specimen_size:specimenSize,sex,specimen_description:specimenDescription};
   const result=editingId!==null?await supabase.from("products").update(values).eq("id",editingId).select("id"):await supabase.from("products").insert({...values,is_sold:false}).select("id");
   if(result.error){setMessage("저장 실패: "+result.error.message);return;}
   if(!result.data?.length){setMessage("수정된 데이터가 없어. Supabase에서 products 테이블의 UPDATE 권한 정책을 확인해야 해.");return;}
