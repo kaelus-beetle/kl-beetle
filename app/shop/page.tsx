@@ -20,7 +20,7 @@ export default async function Shop() {
     <div className="shopProductInfo">
      <span>{p.category||"COLLECTION"}</span>
      <h2>{p.title}</h2>
-     {p.price&&<strong>{p.price}</strong>}
+     {p.price&&<strong className={p.is_sold?"shopSoldPrice":undefined}>{p.price}</strong>}
      <small>사진 및 개체 정보 보기 ↗</small>
     </div>
    </Link>)}
