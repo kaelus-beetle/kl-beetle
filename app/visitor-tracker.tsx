@@ -45,7 +45,7 @@ export function VisitorTracker() {
       setLocationMessage("이 기기 또는 브라우저에서는 위치 확인을 지원하지 않아.");
       return;
     }
-    setLocationMessage("브라우저의 위치 권한 요청을 기다리는 중이야.");
+    setLocationMessage("");
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const value = {
