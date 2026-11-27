@@ -31,3 +31,16 @@ create policy "Authenticated users can read visitor logs"
 on public.visitor_logs for select
 to authenticated
 using (true);
+
+-- 관리자 통계용 집계 함수 (authenticated 사용자만 실행)
+create or replace function public.get_visitor_summary()
+returns table(total_views bigint, unique_visitors bigint)
+language sql
+security invoker
+set search_path = public
+as $$
+  select count(*)::bigint, count(distinct visitor_id)::bigint
+  from public.visitor_logs;
+$$;
+
+grant execute on function public.get_visitor_summary() to authenticated;
