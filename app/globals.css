@@ -77,14 +77,14 @@
 .aboutIntro{background-position:center;background-size:cover;background-color:#424b39;color:#f5f1e8;}
 .aboutIntro .eyebrow,.aboutIntro>p:last-child{color:#f5f1e8;}
 .aboutIntro h1{text-shadow:0 2px 22px rgba(0,0,0,.35);}
-.aboutPhilosophy{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(260px,.85fr);column-gap:clamp(28px,5vw,72px);align-items:center;}
+.aboutPhilosophy{display:grid;grid-template-columns:minmax(0,1fr) minmax(340px,1fr);column-gap:clamp(28px,4vw,60px);align-items:stretch;}
 .aboutPhilosophy>.eyebrow,.aboutPhilosophy>h2{grid-column:1/-1;}
-.aboutPhilosophyImage{grid-column:2;grid-row:3 / span 2;width:100%;max-width:420px;justify-self:end;margin:0;height:300px;overflow:hidden;background:#d4d0c4;}
+.aboutPhilosophyImage{grid-column:2;grid-row:3 / span 2;width:100%;max-width:none;justify-self:stretch;align-self:stretch;margin:0;min-height:440px;height:100%;overflow:hidden;background:#d4d0c4;}
 .aboutPhilosophyImage img{width:100%;height:100%;display:block;object-fit:cover;}
 .species article{min-width:0;}
 .speciesImage{width:100%;min-height:260px;margin-bottom:28px;overflow:hidden;background:transparent;display:flex;align-items:center;justify-content:center;}.speciesImage img{width:100%;height:auto;max-height:380px;display:block;object-fit:contain;}
 .speciesImage img{width:100%;height:100%;display:block;object-fit:cover;}
-@media(max-width:700px){.aboutPhilosophy{display:block}.aboutPhilosophyImage{max-width:100%;margin:24px 0 0;height:220px}.speciesImage{min-height:220px}.speciesImage img{max-height:300px}}
+@media(max-width:700px){.aboutPhilosophy{display:block}.aboutPhilosophyImage{max-width:100%;margin:24px 0 0;height:260px;min-height:260px}.speciesImage{min-height:220px}.speciesImage img{max-height:300px}}
 
 /* Natural forest atmosphere for the SHOP intro */
 .shopIntro{position:relative;isolation:isolate;background-image:linear-gradient(rgba(15,19,13,.48),rgba(15,19,13,.48)),url("https://cdn.myportfolio.com/ec60cecc-901c-4021-8130-5267ee3b3753/2602186f-abe6-4718-964a-9642d0ccb638_rw_1920.jpg?h=94fd710c32b012990d43b2a29c2f4aeb");background-position:center;background-size:cover;color:#f5f1e8;}
