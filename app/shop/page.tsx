@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { supabase, configured } from "../../lib/supabase";
 
-type Product = { id:number; title:string; price:string|null; image_url:string|null; listing_image_url?:string|null; category:string|null; is_sold:boolean };
+type Product = { id:number; title:string; price:string|null; image_url:string|null; listing_image_url?:string|null; listing_image_ratio?:string|null; category:string|null; is_sold:boolean };
 export const dynamic = "force-dynamic";
 
 export default async function Shop() {
@@ -13,7 +13,7 @@ export default async function Shop() {
   {!configured?<p className="notice">Supabase 연결 설정이 필요합니다. 관리자 안내서의 환경변수 단계를 완료해 주세요.</p>:errorMessage?<p className="notice">상품을 불러오지 못했습니다: {errorMessage}</p>:items.length===0?<p className="notice">현재 등록된 판매글이 없습니다.</p>:
   <section className="shopProductGrid" aria-label="판매 상품 목록">
    {items.map(p=><Link href={`/shop/${p.id}`} key={p.id} className="shopProductCard">
-    <div className="shopProductImage">
+    <div className="shopProductImage" style={{aspectRatio:(p.listing_image_ratio||"4:3").replace(":"," / ")}}>
      {(p.listing_image_url||p.image_url)?<img src={p.listing_image_url||p.image_url} alt={p.title}/>:<div className="shopProductPlaceholder">KL BEETLE</div>}
      {p.is_sold&&<b className="shopSoldBadge">SOLD OUT</b>}
     </div>
