@@ -70,6 +70,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ ok: false }, { status: 500 });
     }
 
+    const { error: countError } = await db.rpc("record_page_view", { p_page_path: pagePath });
+    if (countError) console.error("Page view count update failed:", countError.message);
+
     const response = NextResponse.json({ ok: true });
     if (!request.cookies.get("klb_visitor")) {
       response.cookies.set("klb_visitor", visitorId, {
