@@ -37,6 +37,7 @@ export default async function Home() {
           <img src={src} alt={["Phalacrognathus muelleri — rainbow stag beetle","Dynastes hercules — Hercules beetle","Lamprima adolphinae — Lamprima stag beetle"][i]}/>
         </Link>)}
       </div>
+      <p className="photoCredits">PHOTO CREDITS: <a href="https://commons.wikimedia.org/wiki/File:Rainbow_stag_beetle.jpg" target="_blank" rel="noreferrer">Jbjensen1 (CC0)</a> · <a href="https://commons.wikimedia.org/wiki/File:Dynaste_hercule_(14).jpg" target="_blank" rel="noreferrer">Cangadoba (CC BY-SA 4.0)</a> · <a href="https://commons.wikimedia.org/wiki/File:Stag_Beetle_(Lamprima_adolphinae)_(8430587514).jpg" target="_blank" rel="noreferrer">Bernard DUPONT (CC BY-SA 2.0)</a></p>
     </section>
   </main>;
 }
