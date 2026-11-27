@@ -484,3 +484,44 @@
   padding:22px!important;
  }
 }
+
+
+/* DESKTOP SHOP: make the complete product cards identical in size.
+   Use one shared photo frame ratio and one shared information-panel height. */
+@media (min-width:701px){
+ .shopProductGrid{align-items:start!important;}
+ .shopProductGrid>.shopProductCard{
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:stretch!important;
+  width:100%!important;
+  height:auto!important;
+  min-height:0!important;
+ }
+ .shopProductGrid>.shopProductCard>.shopProductImage{
+  display:block!important;
+  width:100%!important;
+  height:auto!important;
+  min-height:0!important;
+  aspect-ratio:4 / 3!important;
+  flex:0 0 auto!important;
+  overflow:hidden!important;
+ }
+ .shopProductGrid>.shopProductCard>.shopProductImage img{
+  display:block!important;
+  width:100%!important;
+  height:100%!important;
+  object-fit:contain!important;
+  object-position:center!important;
+ }
+ .shopProductGrid>.shopProductCard>.shopProductInfo{
+  display:flex!important;
+  flex:0 0 190px!important;
+  width:100%!important;
+  height:190px!important;
+  min-height:190px!important;
+  max-height:190px!important;
+  box-sizing:border-box!important;
+  overflow:hidden!important;
+ }
+}
