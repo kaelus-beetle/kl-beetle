@@ -59,3 +59,7 @@
  .homeGallery{grid-template-columns:1fr;gap:14px}
  .homeGalleryItem{height:250px}
 }
+
+.photoCredits{grid-column:2;font-size:9px;line-height:1.8;color:#858178;text-align:right;margin:-8px 0 0}
+.photoCredits a{text-decoration:underline;text-underline-offset:2px}
+@media(max-width:800px){.photoCredits{grid-column:1;text-align:left;margin:0}}
