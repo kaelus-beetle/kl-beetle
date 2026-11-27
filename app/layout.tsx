@@ -39,5 +39,5 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  return <html lang="ko"><body><SiteHeader /><VisitorTracker />{children}<footer className="footer">© KL BEETLE · BREEDING & COLLECTION <span style={{marginLeft:12}}><a href="/privacy" style={{color:"inherit",textDecoration:"underline"}}>개인정보 및 방문 기록 안내</a></span></footer></body></html>;
+  return <html lang="ko"><body><SiteHeader /><VisitorTracker />{children}<footer className="footer">© KL BEETLE · BREEDING & COLLECTION</footer></body></html>;
 }
