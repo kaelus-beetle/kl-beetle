@@ -43,3 +43,19 @@ from public.visitor_logs
 where gps_latitude is not null and gps_longitude is not null
 order by visitor_id, created_at desc
 on conflict (visitor_id) do nothing;
+
+
+-- The browser checks only whether its own random visitor cookie has an active consent record.
+create or replace function public.has_location_consent(p_visitor_id text)
+returns boolean
+language sql
+security definer
+set search_path = public
+as $$
+  select exists (
+    select 1 from public.location_consents
+    where visitor_id = p_visitor_id
+  );
+$$;
+revoke all on function public.has_location_consent(text) from public;
+grant execute on function public.has_location_consent(text) to anon, authenticated;
