@@ -72,3 +72,14 @@
 .homeGalleryCaption span{font-size:11px;letter-spacing:.02em;color:#77736d}
 @media(max-width:800px){.homeGalleryItem img{height:210px}}
 @media(max-width:520px){.homeGalleryItem img{height:250px}}
+
+/* ABOUT page editorial image areas */
+.aboutIntro{background-position:center;background-size:cover;background-color:#424b39;color:#f5f1e8;}
+.aboutIntro .eyebrow,.aboutIntro>p:last-child{color:#f5f1e8;}
+.aboutIntro h1{text-shadow:0 2px 22px rgba(0,0,0,.35);}
+.aboutPhilosophyImage{max-width:980px;margin:54px auto 0;height:clamp(220px,34vw,440px);overflow:hidden;background:#d4d0c4;}
+.aboutPhilosophyImage img{width:100%;height:100%;display:block;object-fit:cover;}
+.species article{min-width:0;}
+.speciesImage{width:100%;height:260px;margin-bottom:28px;overflow:hidden;background:#d8d4c9;}
+.speciesImage img{width:100%;height:100%;display:block;object-fit:cover;}
+@media(max-width:700px){.aboutPhilosophyImage{margin-top:36px;height:240px}.speciesImage{height:230px}}
