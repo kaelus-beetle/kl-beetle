@@ -3,7 +3,7 @@ import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } f
 import { supabase, configured } from "../../lib/supabase";
 
 type VisitorLog = { id:number; visitor_id:string; ip_address:string|null; country:string|null; region:string|null; city:string|null; device:string|null; operating_system:string|null; browser:string|null; page_path:string; created_at:string };
-type Product = { id:number; title:string; price:string|null; image_url:string|null; listing_image_url?:string|null; image_urls?:string[]|null; category:string|null; is_sold:boolean; scientific_name?:string|null; origin?:string|null; specimen_size?:string|null; sex?:string|null; specimen_description?:string|null };
+type Product = { id:number; title:string; price:string|null; image_url:string|null; listing_image_url?:string|null; listing_image_ratio?:string|null; image_urls?:string[]|null; category:string|null; is_sold:boolean; scientific_name?:string|null; origin?:string|null; specimen_size?:string|null; sex?:string|null; specimen_description?:string|null };
 const imageSlots=[{key:"hero_image",label:"메인 배경 사진"},{key:"shop_intro_background",label:"SHOP 상단 자연 배경 사진"},{key:"about_intro_background",label:"ABOUT 상단 MEET THE BREEDER 배경"},{key:"about_image",label:"ABOUT 브리더 프로필 사진"},{key:"about_philosophy_image",label:"ABOUT Small wonders 아래 사진"},{key:"species_muelleri_image",label:"ABOUT 뮤엘러리사슴벌레 사진"},{key:"species_hercules_image",label:"ABOUT 헤라클레스장수풍뎅이 사진"},{key:"gallery_1",label:"갤러리 사진 1"},{key:"gallery_2",label:"갤러리 사진 2"},{key:"gallery_3",label:"갤러리 사진 3"}];
 
 export default function Admin(){
@@ -11,7 +11,7 @@ export default function Admin(){
  const [email,setEmail]=useState(""); const [password,setPassword]=useState(""); const [user,setUser]=useState<any>(null); const [items,setItems]=useState<Product[]>([]);
  const [title,setTitle]=useState(""); const [price,setPrice]=useState(""); const [category,setCategory]=useState("");
  const [scientificName,setScientificName]=useState(""); const [origin,setOrigin]=useState(""); const [specimenSize,setSpecimenSize]=useState(""); const [sex,setSex]=useState(""); const [specimenDescription,setSpecimenDescription]=useState("");
- const [images,setImages]=useState<File[]>([]); const [listingImage,setListingImage]=useState<File|null>(null);
+ const [images,setImages]=useState<File[]>([]); const [listingImage,setListingImage]=useState<File|null>(null); const [listingImageRatio,setListingImageRatio]=useState("4:3");
  const [cropQueue,setCropQueue]=useState<File[]>([]);
  const [cropIndex,setCropIndex]=useState(0);
  const [cropDone,setCropDone]=useState<File[]>([]);
@@ -44,7 +44,7 @@ export default function Admin(){
    gallery_1:{label:"홈 갤러리 사진",pcWidth:360,pcHeight:265,mobileWidth:360,mobileHeight:250},
    gallery_2:{label:"홈 갤러리 사진",pcWidth:360,pcHeight:265,mobileWidth:360,mobileHeight:250},
    gallery_3:{label:"홈 갤러리 사진",pcWidth:360,pcHeight:265,mobileWidth:360,mobileHeight:250},
-   product_listing:{label:"SHOP 상품 카드 사진",pcWidth:360,pcHeight:240,mobileWidth:360,mobileHeight:240}
+   product_listing:{label:"SHOP 상품 카드 사진",pcWidth:360,pcHeight:Math.round(360/(Number(listingImageRatio.split(":")[0])/Number(listingImageRatio.split(":")[1]))),mobileWidth:360,mobileHeight:Math.round(360/(Number(listingImageRatio.split(":")[0])/Number(listingImageRatio.split(":")[1])))}
   };
   const info=targets[key]||{label:"사진 표시 영역",pcWidth:360,pcHeight:270,mobileWidth:360,mobileHeight:270};
   const width=cropPreviewDevice==="pc"?info.pcWidth:info.mobileWidth;
@@ -147,8 +147,8 @@ export default function Admin(){
   await loadAnalytics();
  }
  async function login(e:any){e.preventDefault();const {error}=await supabase.auth.signInWithPassword({email,password});setMessage(error?.message||"로그인되었습니다.");}
- function clearForm(){setEditingId(null);setEditingImages([]);setListingImage(null);setTitle("");setPrice("");setCategory("");setScientificName("");setOrigin("");setSpecimenSize("");setSex("");setSpecimenDescription("");setImages([]);}
- function edit(p:Product){setEditingId(p.id);setListingImage(null);setEditingImages(p.image_urls?.length?p.image_urls:(p.image_url?[p.image_url]:[]));setTitle(p.title||"");setPrice(p.price||"");setCategory(p.category||"");setScientificName(p.scientific_name||"");setOrigin(p.origin||"");setSpecimenSize(p.specimen_size||"");setSex(p.sex||"");setSpecimenDescription(p.specimen_description||"");setImages([]);setListingImage(null);setMessage("수정할 내용을 입력한 뒤 저장해 주세요.");setTimeout(()=>editorRef.current?.scrollIntoView({behavior:"smooth",block:"start"}),50);}
+ function clearForm(){setEditingId(null);setEditingImages([]);setListingImage(null);setListingImageRatio("4:3");setTitle("");setPrice("");setCategory("");setScientificName("");setOrigin("");setSpecimenSize("");setSex("");setSpecimenDescription("");setImages([]);}
+ function edit(p:Product){setEditingId(p.id);setListingImageRatio(p.listing_image_ratio||"4:3");setListingImage(null);setEditingImages(p.image_urls?.length?p.image_urls:(p.image_url?[p.image_url]:[]));setTitle(p.title||"");setPrice(p.price||"");setCategory(p.category||"");setScientificName(p.scientific_name||"");setOrigin(p.origin||"");setSpecimenSize(p.specimen_size||"");setSex(p.sex||"");setSpecimenDescription(p.specimen_description||"");setImages([]);setListingImage(null);setMessage("수정할 내용을 입력한 뒤 저장해 주세요.");setTimeout(()=>editorRef.current?.scrollIntoView({behavior:"smooth",block:"start"}),50);}
  async function add(e:any){
   e.preventDefault();setMessage("");
   let image_urls=editingId!==null?editingImages:[];
@@ -156,7 +156,7 @@ export default function Admin(){
   const image_url=image_urls[0]||null;
   let listing_image_url:string|null|undefined=editingId!==null?undefined:null;
   if(listingImage){const path=`products/listing-${Date.now()}-${listingImage.name.replace(/[^a-zA-Z0-9.-]/g,"_")}`;const {error:upErr}=await supabase.storage.from("kl-beetle-images").upload(path,listingImage);if(upErr){setMessage("목록용 사진 업로드 실패: "+upErr.message);return;}listing_image_url=supabase.storage.from("kl-beetle-images").getPublicUrl(path).data.publicUrl;}
-  const values={title,price,category,image_url,image_urls,...(listing_image_url!==undefined?{listing_image_url}:{}),scientific_name:scientificName,origin,specimen_size:specimenSize,sex,specimen_description:specimenDescription};
+  const values={title,price,category,image_url,image_urls,listing_image_ratio:listingImageRatio,...(listing_image_url!==undefined?{listing_image_url}:{}),scientific_name:scientificName,origin,specimen_size:specimenSize,sex,specimen_description:specimenDescription};
   const result=editingId!==null?await supabase.from("products").update(values).eq("id",editingId).select("id"):await supabase.from("products").insert({...values,is_sold:false}).select("id");
   if(result.error){setMessage("저장 실패: "+result.error.message);return;}
   if(!result.data?.length){setMessage("수정된 데이터가 없어. Supabase에서 products 테이블의 UPDATE 권한 정책을 확인해야 해.");return;}
@@ -214,7 +214,7 @@ export default function Admin(){
   <label>가격<input value={price} onChange={e=>setPrice(e.target.value)} placeholder="가격 협의"/></label>
   <label>개체 설명<textarea value={specimenDescription} onChange={e=>setSpecimenDescription(e.target.value)} placeholder="혈통, 우화일, 먹이, 특징 등 개체에 대한 설명을 작성해 주세요."/></label>
   <label>상세 페이지 사진 (원본 그대로 · 여러 장 가능)<input type="file" accept="image/*" multiple onChange={e=>{const files=Array.from(e.target.files||[]);if(files.length){setImages(files);setMessage("상세 페이지용 원본 사진을 선택했어.");}e.currentTarget.value="";}}/><small>{editingId!==null?"기존 사진은 유지돼. 새 사진을 선택하면 원본 그대로 교체돼.":"선택한 원본 사진이 상세 페이지에 그대로 등록돼."}</small>{images.length>0&&<small>선택된 원본 사진: {images.length}장</small>}{editingId!==null&&editingImages.length>0&&images.length===0&&<small>현재 등록된 사진: {editingImages.length}장</small>}</label>
-  <label>SHOP 목록 카드 사진 (별도 자르기)<input type="file" accept="image/*" onChange={e=>{const file=e.target.files?.[0];if(file)beginCrop([file],"product_listing");e.currentTarget.value="";}}/><small>{listingImage?"새 목록용 사진 편집 완료":editingId!==null?"새 사진을 선택하지 않으면 기존 목록 사진을 유지해.":"목록 카드에 표시할 사진을 별도로 올려줘."}</small></label>
+  <label>SHOP 목록 사진 비율<select value={listingImageRatio} onChange={e=>setListingImageRatio(e.target.value)}><option value="4:3">가로형 4:3</option><option value="3:2">넓은 가로형 3:2</option><option value="1:1">정사각형 1:1</option><option value="3:4">세로형 3:4</option><option value="4:5">긴 세로형 4:5</option></select><small>상품마다 원하는 비율을 따로 지정할 수 있어.</small></label>\n   <label>SHOP 목록 카드 사진 (선택한 비율로 자르기)<input type="file" accept="image/*" onChange={e=>{const file=e.target.files?.[0];if(file)beginCrop([file],"product_listing");e.currentTarget.value="";}}/><small>{listingImage?"새 목록용 사진 편집 완료":editingId!==null?"새 사진을 선택하지 않으면 기존 목록 사진을 유지해.":"목록 카드에 표시할 사진을 별도로 올려줘."}</small></label>
   <button type="submit">{editingId!==null?"수정 내용 저장":"판매글 등록"}</button>{editingId!==null&&<button type="button" onClick={clearForm}>수정 취소</button>}
  </form>
  <h2 className="adminHeading">등록된 판매글</h2>{items.map(p=><div className="adminItem" key={p.id}><span>{p.title} · {p.is_sold?"판매완료":"판매중"}</span><div><button type="button" onClick={()=>edit(p)}>수정</button><button type="button" onClick={()=>toggle(p)}>{p.is_sold?"판매중으로":"판매완료로"}</button><button type="button" className="danger" onClick={()=>remove(p.id)}>삭제</button></div></div>)}
