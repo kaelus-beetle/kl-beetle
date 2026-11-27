@@ -14,8 +14,8 @@ export default async function About() {
     </section>
     <section className="aboutGrid section">
       <div className="profileBlank" aria-label="Breeder profile image area" style={profileImage?{backgroundImage:`url("${profileImage}")`,backgroundSize:"cover",backgroundPosition:"center"}:undefined}></div>
-      <div className="aboutText"><p className="eyebrow">THE BREEDER</p><h2>KAELUS</h2><p>안녕하세요. KL BEETLE 브리더 KAELUS입니다.</p><p>뮤엘러리사슴벌레와 헤라클레스를 중심으로 브리딩하고 있으며, 그 외에도 다양한 곤충을 사육하고 있습니다. 개체 하나하나의 특징과 혈통, 건강한 사육 환경을 중요하게 생각합니다.</p></div>
+      <div className="aboutText"><p className="eyebrow">THE BREEDER</p><h2>KAELUS</h2><p>안녕하세요. KL BEETLE의 브리더 KAELUS입니다.</p><p>저는 뮤엘러리사슴벌레와 헤라클레스장수풍뎅이를 중심으로 다양한 곤충을 브리딩하고 있습니다. 단순히 크기나 외형만을 좇기보다 각 종이 지닌 고유한 형태와 습성, 개체마다 다른 매력을 이해하는 것을 브리딩의 첫걸음으로 생각합니다.</p><p>한 마리의 개체가 다음 세대로 이어지기까지 성장 과정과 혈통을 세심하게 살피고, 종과 개체의 특성에 맞는 안정적인 사육 환경을 만드는 데 집중합니다. 작은 변화도 놓치지 않도록 꾸준히 관찰하고 기록하며, 건강한 개체를 오래도록 만날 수 있는 사육과 브리딩을 지향합니다.</p><p>KL BEETLE은 이러한 경험과 애정을 바탕으로 제가 직접 사육하며 느낀 곤충의 아름다움과 브리딩의 즐거움을 나누는 공간입니다. 앞으로도 한 마리 한 마리를 소중히 여기며 신뢰할 수 있는 개체와 기록을 소개하겠습니다.</p></div>
     </section>
-    <section className="species section"><article><p className="eyebrow">01 / SPECIES</p><h2>P. MUELLERI</h2><p>뮤엘러리사슴벌레 · <i>Phalacrognathus muelleri</i></p></article><article><p className="eyebrow">02 / SPECIES</p><h2>HERCULES</h2><p>헤라클레스장수풍뎅이</p></article></section>
+    <section className="species section"><article><p className="eyebrow">01 / SPECIES</p><h2>P. MUELLERI</h2><p>뮤엘러리사슴벌레 · <i>Phalacrognathus muelleri</i></p></article><article><p className="eyebrow">02 / SPECIES</p><h2>HERCULES</h2><p>헤라클레스장수풍뎅이 · <i>Dynastes hercules hercules</i></p></article></section>
   </main>;
 }
