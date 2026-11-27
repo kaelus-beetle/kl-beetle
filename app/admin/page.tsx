@@ -39,8 +39,8 @@ export default function Admin(){
    about_intro_background:{label:"ABOUT 상단 배경",pcWidth:1440,pcHeight:576,mobileWidth:390,mobileHeight:290},
    about_image:{label:"ABOUT 브리더 프로필",pcWidth:560,pcHeight:386,mobileWidth:350,mobileHeight:292},
    about_philosophy_image:{label:"ABOUT 철학 소개 사진",pcWidth:560,pcHeight:386,mobileWidth:350,mobileHeight:350},
-   species_muelleri_image:{label:"뮤엘러리 사진 영역",pcWidth:390,pcHeight:315,mobileWidth:400,mobileHeight:300},
-   species_hercules_image:{label:"헤라클레스 사진 영역",pcWidth:390,pcHeight:315,mobileWidth:400,mobileHeight:300},
+   species_muelleri_image:{label:"뮤엘러리 사진 영역",pcWidth:400,pcHeight:300,mobileWidth:400,mobileHeight:300},
+   species_hercules_image:{label:"헤라클레스 사진 영역",pcWidth:400,pcHeight:300,mobileWidth:400,mobileHeight:300},
    gallery_1:{label:"홈 갤러리 사진",pcWidth:360,pcHeight:265,mobileWidth:360,mobileHeight:250},
    gallery_2:{label:"홈 갤러리 사진",pcWidth:360,pcHeight:265,mobileWidth:360,mobileHeight:250},
    gallery_3:{label:"홈 갤러리 사진",pcWidth:360,pcHeight:265,mobileWidth:360,mobileHeight:250},
@@ -222,7 +222,7 @@ export default function Admin(){
  {cropFile&&<div className="photoCropOverlay" role="dialog" aria-modal="true" aria-label="사진 편집">
   <div className="photoCropDialog">
    <div className="photoCropHeader"><div><p className="eyebrow">KL BEETLE / PHOTO EDITOR</p><h2>사진 위치 및 크기 조절</h2><small>{cropIndex+1} / {cropQueue.length}장 편집 중</small></div><button type="button" onClick={()=>{setCropFile(null);setCropQueue([]);setCropDone([]);setCropTarget(null);}}>닫기</button></div>
-   <p className="photoCropHint">선택 영역은 ABOUT 사진 표시 비율을 항상 유지해. 네 모서리로 크기를 줄이거나 키울 수 있고, 원본 사진 안에서 표시 영역에 맞는 최대 크기까지만 커져. 테두리 안쪽을 드래그하면 위치를 옮길 수 있어.</p>
+   <p className="photoCropHint">밝은 테두리 안쪽이 ABOUT에 실제로 표시될 영역이야. 사진을 찌그러뜨리지 않고, 테두리를 움직이거나 네 모서리를 조절해서 원하는 부분만 선택해. 저장 후 ABOUT에는 테두리 안쪽 결과가 그대로 표시돼.</p>
    <div className="photoCropWorkspace">
     <div className="photoCropEditorColumn">
      <strong className="photoCropSectionTitle">원본 사진 · 표시할 영역 선택</strong>
