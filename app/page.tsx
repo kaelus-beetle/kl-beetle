@@ -33,9 +33,18 @@ export default async function Home() {
         <Link className="homeTextLink" href="/about">MEET THE BREEDER ↗</Link>
       </div>
       <div className="homeGallery">
-        {gallery.map((src, i) => <Link href={i === 0 ? "/about" : "/shop"} className="homeGalleryItem" key={i}>
-          <img src={src} alt={["Phalacrognathus muelleri — rainbow stag beetle","Dynastes hercules — Hercules beetle","Lamprima adolphinae — Lamprima stag beetle"][i]}/>
-        </Link>)}
+        {gallery.map((src, i) => {
+          const card = <div className="homeGalleryItem">
+            <img src={src} alt={["Phalacrognathus muelleri — rainbow stag beetle","Dynastes hercules — Hercules beetle","Lamprima adolphinae — Lamprima stag beetle"][i]}/>
+            <div className="homeGalleryCaption">
+              <strong>{["P. MUELLERI","HERCULES","LAMPRIMA"][i]}</strong>
+              <span>{["Rainbow Stag Beetle · 뮤엘러리사슴벌레","Hercules Beetle · 헤라클레스장수풍뎅이","Lamprima Stag Beetle · 람프리마"][i]}</span>
+            </div>
+          </div>;
+          return i === 2
+            ? <div key={i}>{card}</div>
+            : <Link href={i === 0 ? "/about" : "/shop"} key={i}>{card}</Link>;
+        })}
       </div>
       <p className="photoCredits">PHOTO CREDITS: <a href="https://commons.wikimedia.org/wiki/File:Rainbow_stag_beetle.jpg" target="_blank" rel="noreferrer">Jbjensen1 (CC0)</a> · <a href="https://commons.wikimedia.org/wiki/File:Dynaste_hercule_(14).jpg" target="_blank" rel="noreferrer">Cangadoba (CC BY-SA 4.0)</a> · <a href="https://commons.wikimedia.org/wiki/File:Stag_Beetle_(Lamprima_adolphinae)_(8430587514).jpg" target="_blank" rel="noreferrer">Bernard DUPONT (CC BY-SA 2.0)</a></p>
     </section>
