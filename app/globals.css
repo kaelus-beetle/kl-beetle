@@ -417,3 +417,12 @@
  .productPhotoLightboxPrev{left:8px;}
  .productPhotoLightboxNext{right:8px;}
 }
+
+
+/* SHOP listing previews: portrait 4:5 frames for taller specimen photos. */
+.shopProductImage{width:100%;height:auto!important;min-height:0!important;aspect-ratio:4/5!important;overflow:hidden;padding:0!important;}
+.shopProductImage img{display:block;width:100%;height:100%;max-width:none;max-height:none;object-fit:cover;object-position:center;}
+@media(max-width:700px){
+ .shopProductImage{width:100%;height:auto!important;min-height:0!important;aspect-ratio:4/5!important;}
+ .shopProductImage img{width:100%;height:100%;object-fit:cover;object-position:center;}
+}
