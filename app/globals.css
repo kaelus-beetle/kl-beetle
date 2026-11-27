@@ -276,3 +276,58 @@
 .photoCropHandle-ne{right:0;top:0;transform:none;}
 .photoCropHandle-sw{left:0;bottom:0;transform:none;}
 .photoCropHandle-se{right:0;bottom:0;transform:none;}
+
+
+/* Mobile-only ABOUT layout cleanup */
+@media(max-width:700px){
+ .aboutIntro{min-height:250px;padding:64px 20px 48px;background-position:center;}
+ .aboutIntro h1{font-size:clamp(30px,8vw,42px);line-height:1.2;letter-spacing:.08em;margin:14px 0;}
+ .aboutIntro>p:last-child{font-size:12px;line-height:1.8;}
+ .aboutPhilosophy{display:flex!important;flex-direction:column;gap:0;padding:58px 7vw 64px;}
+ .aboutPhilosophy>.eyebrow{order:0;margin:0 0 12px;}
+ .aboutPhilosophy>h2{order:1;font-size:clamp(29px,7vw,36px);line-height:1.2;margin:0 0 22px;}
+ .aboutPhilosophyText{order:2;width:100%;gap:15px;margin:0;}
+ .aboutPhilosophyText>.bodyCopy{font-size:13px;line-height:2;margin:0;}
+ .aboutPhilosophyImage{order:3;width:100%;height:auto;min-height:0;max-height:none;aspect-ratio:4/3;margin:24px 0 0;}
+ .aboutPhilosophyImage img{width:100%;height:100%;object-fit:cover;}
+ .aboutGrid{display:flex!important;flex-direction:column;gap:24px;padding:58px 7vw 64px;align-items:stretch;}
+ .aboutGrid .profileBlank{width:100%;min-height:0;height:auto;aspect-ratio:4/5;background-position:center;background-size:cover;}
+ .aboutGrid .aboutText{width:100%;min-width:0;}
+ .aboutText .eyebrow{margin:0 0 10px;}
+ .aboutText h2{font-size:36px;line-height:1.2;margin:0 0 18px;}
+ .aboutText p:not(.eyebrow){font-size:13px;line-height:2;margin:0 0 14px;}
+ .species.section{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:38px;padding:58px 7vw 70px;}
+ .species article{width:100%;min-width:0;}
+ .speciesImage{width:100%;height:auto;min-height:0;aspect-ratio:4/3;margin:0 0 20px;background:#dedbd2;overflow:hidden;}
+ .speciesImage img{width:100%;height:100%;max-width:100%;max-height:100%;object-fit:contain;object-position:center;}
+ .species article .eyebrow{margin:0 0 9px;}
+ .species article h2{font-size:34px;line-height:1.2;margin:0 0 10px;}
+ .species article>p:last-child{font-size:12px;line-height:1.8;margin:0;}
+}
+
+/* Product detail photo gallery: full-size mobile image and tap-to-view lightbox */
+.productDetailGallery{width:100%;min-width:0;}
+.productDetailMainPhoto{width:100%;min-height:280px;background:#e2ded4;display:flex;align-items:center;justify-content:center;overflow:hidden;}
+.productDetailPhotoButton{position:relative;display:block;width:100%;padding:0;border:0;background:transparent;cursor:zoom-in;}
+.productDetailPhotoButton img{display:block;width:100%;height:auto;max-height:720px;object-fit:contain;background:#e2ded4;}
+.productDetailZoomHint{position:absolute;right:10px;bottom:10px;padding:7px 10px;background:rgba(25,27,22,.65);color:#fff;font-size:10px;letter-spacing:.03em;}
+.productDetailEmpty{min-height:280px;display:grid;place-items:center;}
+.productDetailThumbnails{display:grid;grid-template-columns:repeat(auto-fill,minmax(76px,1fr));gap:10px;margin-top:12px;}
+.productDetailThumbnails button{height:86px;padding:0;overflow:hidden;border:1px solid #d5d0c5;background:#e2ded4;cursor:pointer;}
+.productDetailThumbnails button.active{border:2px solid #626a4e;}
+.productDetailThumbnails img{display:block;width:100%;height:100%;object-fit:cover;}
+.productPhotoLightbox{position:fixed;inset:0;z-index:2000;background:rgba(10,11,9,.96);display:flex;align-items:center;justify-content:center;padding:24px;}
+.productPhotoLightbox>img{display:block;max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;}
+.productPhotoLightboxClose{position:absolute;top:14px;right:18px;width:44px;height:44px;border:1px solid rgba(255,255,255,.55);border-radius:50%;background:rgba(0,0,0,.35);color:#fff;font-size:30px;line-height:1;cursor:pointer;}
+.productPhotoLightboxCount{position:absolute;bottom:18px;left:50%;transform:translateX(-50%);color:#fff;font-size:12px;letter-spacing:.12em;}
+@media(max-width:700px){
+ .productDetailMainPhoto{min-height:0;width:100%;background:#e2ded4;}
+ .productDetailPhotoButton{width:100%;}
+ .productDetailPhotoButton img{width:100%;height:auto;max-height:72vh;min-height:0;object-fit:contain;}
+ .productDetailZoomHint{right:8px;bottom:8px;font-size:9px;padding:6px 8px;}
+ .productDetailThumbnails{grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:8px;margin-top:10px;}
+ .productDetailThumbnails button{height:72px;}
+ .productPhotoLightbox{padding:12px;}
+ .productPhotoLightbox>img{max-width:100%;max-height:calc(100dvh - 70px);width:auto;height:auto;object-fit:contain;}
+ .productPhotoLightboxClose{top:10px;right:10px;width:42px;height:42px;}
+}
