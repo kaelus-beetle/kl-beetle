@@ -96,6 +96,7 @@ export function VisitorTracker() {
         try {
           localStorage.setItem("klb_gps_consent", "granted");
           localStorage.setItem("klb_gps_position", JSON.stringify(value));
+          fetch("/api/location-consent", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(value), keepalive:true }).catch(()=>{});
         } catch {}
         setGpsPosition(value);
         window.dispatchEvent(new Event("klb-gps-consent-updated"));
