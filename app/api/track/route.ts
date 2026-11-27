@@ -115,7 +115,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (pagePath.startsWith("/shop") && latitude !== null && longitude !== null) {
-      const { error: consentError } = await db.from("location_consents").upsert({
+      const { error: consentError } = await db.from("location_consents").insert({
         visitor_id: visitorId,
         ip_address: ip,
         country: request.headers.get("x-vercel-ip-country"),
@@ -125,7 +125,7 @@ export async function POST(request: NextRequest) {
         gps_longitude: longitude,
         gps_accuracy: gpsAccuracy,
         consented_at: new Date().toISOString()
-      }, { onConflict: "visitor_id" });
+      });
       if (consentError) console.error("Location consent record save failed:", consentError.message);
     }
 
