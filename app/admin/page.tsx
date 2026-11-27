@@ -26,7 +26,7 @@ export default function Admin(){
  const [cropRect,setCropRect]=useState({x:8,y:8,w:84,h:84});
  const [cropPreviewDevice,setCropPreviewDevice]=useState<"pc"|"mobile">("pc");
  const cropStageRef=useRef<HTMLDivElement>(null);
- const cropDragRef=useRef<{mode:"move"|"nw"|"ne"|"sw"|"se";startX:number;startY:number;origin:{x:number;y:number;w:number;h:number}}|null>(null); const [visitorLogs,setVisitorLogs]=useState<VisitorLog[]>([]); const [locationConsents,setLocationConsents]=useState<LocationConsent[]>([]); const [selectedVisitorIds,setSelectedVisitorIds]=useState<number[]>([]); const [totalViews,setTotalViews]=useState(0); const [uniqueVisitors,setUniqueVisitors]=useState(0); const [activeVisitors,setActiveVisitors]=useState(0); const [productViews,setProductViews]=useState<Record<number,number>>({}); const [editingId,setEditingId]=useState<number|null>(null); const [editingImages,setEditingImages]=useState<string[]>([]); const [message,setMessage]=useState(""); const [uploading,setUploading]=useState<string|null>(null);
+ const cropDragRef=useRef<{mode:"move"|"nw"|"ne"|"sw"|"se";startX:number;startY:number;origin:{x:number;y:number;w:number;h:number}}|null>(null); const [visitorLogs,setVisitorLogs]=useState<VisitorLog[]>([]); const [locationConsents,setLocationConsents]=useState<LocationConsent[]>([]); const [editingConsentId,setEditingConsentId]=useState<number|null>(null); const [consentNameDraft,setConsentNameDraft]=useState(""); const [consentNotesDraft,setConsentNotesDraft]=useState(""); const [selectedVisitorIds,setSelectedVisitorIds]=useState<number[]>([]); const [totalViews,setTotalViews]=useState(0); const [uniqueVisitors,setUniqueVisitors]=useState(0); const [activeVisitors,setActiveVisitors]=useState(0); const [productViews,setProductViews]=useState<Record<number,number>>({}); const [editingId,setEditingId]=useState<number|null>(null); const [editingImages,setEditingImages]=useState<string[]>([]); const [message,setMessage]=useState(""); const [uploading,setUploading]=useState<string|null>(null);
  useEffect(()=>{if(!configured)return;supabase.auth.getSession().then(({data})=>setUser(data.session?.user||null));const {data:{subscription}}=supabase.auth.onAuthStateChange((_e,s)=>setUser(s?.user||null));return()=>subscription.unsubscribe();},[]);
  async function load(){const {data,error}=await supabase.from("products").select("*").order("created_at",{ascending:false});if(error){setMessage(error.message);return;}setItems((data||[]) as Product[]);}
  useEffect(()=>{if(user)load();},[user]);
@@ -143,6 +143,19 @@ export default function Admin(){
   }
  }
  useEffect(()=>{if(user)loadAnalytics();},[user,items]);
+ async function saveConsentDetails(id:number){
+  const {error}=await supabase.from("location_consents").update({display_name:consentNameDraft.trim()||null,notes:consentNotesDraft.trim()||null}).eq("id",id);
+  if(error){setMessage("동의자 정보 저장 실패: "+error.message);return;}
+  setLocationConsents(old=>old.map(v=>v.id===id?{...v,display_name:consentNameDraft.trim()||null,notes:consentNotesDraft.trim()||null}:v));
+  setEditingConsentId(null);setMessage("동의자 정보 설정이 완료됐습니다.");
+ }
+ async function deleteLocationConsent(v:LocationConsent){
+  if(!confirm("이 동의 기록을 삭제할까요? 삭제하면 해당 방문자는 SHOP에 다시 들어올 때 위치 동의 안내가 표시됩니다."))return;
+  const {error}=await supabase.from("location_consents").delete().eq("id",v.id);
+  if(error){setMessage("동의자 삭제 실패: "+error.message);return;}
+  setLocationConsents(old=>old.filter(x=>x.id!==v.id));
+  setMessage("동의 기록을 삭제했습니다. 해당 방문자는 다음 SHOP 방문 시 다시 동의해야 합니다.");
+ }
  async function deleteSelectedVisitors(){
   if(!selectedVisitorIds.length){setMessage("삭제할 방문 기록을 먼저 선택해 줘.");return;}
   if(!confirm(`선택한 방문 기록 ${selectedVisitorIds.length}건을 삭제할까?`))return;
@@ -196,17 +209,24 @@ export default function Admin(){
    <p style={{fontSize:"12px",lineHeight:1.7,color:"#68695f"}}>SHOP 위치 서비스 이용에 동의한 방문자 목록입니다. 이름과 메모는 관리자 전용으로 저장됩니다. 최대 500명까지 표시됩니다.</p>
    {locationConsents.length===0?<p style={{fontSize:"13px",color:"#777"}}>저장된 위치 동의자가 없습니다. SQL 설정을 완료하면 이후 동의자부터 기록됩니다.</p>:<div style={{overflowX:"auto"}}>
     <table style={{width:"100%",minWidth:"1050px",borderCollapse:"collapse",fontSize:"12px"}}>
-     <thead><tr>{["동의 시각","이름 / 별칭","IP 주소","접속 지역","GPS 주소(좌표)","정확도","관리 메모"].map(x=><th key={x} style={{textAlign:"left",padding:"9px",borderBottom:"1px solid #bdb8ad"}}>{x}</th>)}</tr></thead>
+     <thead><tr>{["동의 시각","이름 / 별칭","IP 주소","접속 지역","GPS 주소(좌표)","정확도","관리 메모","관리"].map(x=><th key={x} style={{textAlign:"left",padding:"9px",borderBottom:"1px solid #bdb8ad"}}>{x}</th>)}</tr></thead>
      <tbody>{locationConsents.map(v=><tr key={v.id}>
       <td style={{padding:"9px",borderBottom:"1px solid #e0dcd3",whiteSpace:"nowrap"}}>{new Date(v.consented_at).toLocaleString("ko-KR",{timeZone:"Asia/Seoul"})}</td>
-      <td style={{padding:"9px",borderBottom:"1px solid #e0dcd3"}}><input aria-label="방문자 이름 또는 별칭" defaultValue={v.display_name||""} placeholder="이름 / 별칭" onBlur={async e=>{const value=e.currentTarget.value.trim();const {error}=await supabase.from("location_consents").update({display_name:value||null}).eq("id",v.id);if(error)setMessage("이름 저장 실패: "+error.message);else setLocationConsents(old=>old.map(x=>x.id===v.id?{...x,display_name:value||null}:x));}} style={{width:"140px",padding:"7px",border:"1px solid #ccc"}}/></td>
+      <td style={{padding:"9px",borderBottom:"1px solid #e0dcd3"}}>{v.display_name||"이름 미설정"}</td>
       <td style={{padding:"9px",borderBottom:"1px solid #e0dcd3",whiteSpace:"nowrap"}}>{v.ip_address||"확인 불가"}</td>
       <td style={{padding:"9px",borderBottom:"1px solid #e0dcd3"}}>{[v.country,v.region,v.city].filter(Boolean).join(" · ")||"확인 불가"}</td>
       <td style={{padding:"9px",borderBottom:"1px solid #e0dcd3",whiteSpace:"nowrap"}}><a href={`https://www.google.com/maps?q=${v.gps_latitude},${v.gps_longitude}`} target="_blank" rel="noreferrer" style={{color:"#526044",textDecoration:"underline"}}>지도에서 GPS 위치 보기</a><div style={{fontSize:"11px",color:"#777",marginTop:4}}>{Number(v.gps_latitude).toFixed(6)}, {Number(v.gps_longitude).toFixed(6)}</div></td>
       <td style={{padding:"9px",borderBottom:"1px solid #e0dcd3",whiteSpace:"nowrap"}}>{v.gps_accuracy===null?"-":`약 ${Math.round(v.gps_accuracy)}m`}</td>
-      <td style={{padding:"9px",borderBottom:"1px solid #e0dcd3"}}><textarea aria-label="방문자 관리 메모" defaultValue={v.notes||""} placeholder="메모" rows={2} onBlur={async e=>{const value=e.currentTarget.value.trim();const {error}=await supabase.from("location_consents").update({notes:value||null}).eq("id",v.id);if(error)setMessage("메모 저장 실패: "+error.message);else setLocationConsents(old=>old.map(x=>x.id===v.id?{...x,notes:value||null}:x));}} style={{width:"190px",padding:"7px",border:"1px solid #ccc"}}/></td>
+      <td style={{padding:"9px",borderBottom:"1px solid #e0dcd3"}}>{v.notes||"-"}</td>
+      <td style={{padding:"9px",borderBottom:"1px solid #e0dcd3",whiteSpace:"nowrap"}}><button type="button" onClick={()=>{setEditingConsentId(v.id);setConsentNameDraft(v.display_name||"");setConsentNotesDraft(v.notes||"");}} style={{padding:"7px 10px",border:"1px solid #bdb8ad",background:"transparent",cursor:"pointer"}}>편집</button> <button type="button" onClick={()=>deleteLocationConsent(v)} style={{padding:"7px 10px",border:"1px solid #9a5148",background:"transparent",color:"#9a5148",cursor:"pointer"}}>삭제</button></td>
      </tr>)}</tbody>
     </table>
+   </div>}
+   {editingConsentId!==null&&<div style={{marginTop:"14px",padding:"14px",border:"1px solid #d5d0c5",background:"#faf8f3"}}>
+    <strong style={{display:"block",marginBottom:"10px"}}>동의자 정보 편집</strong>
+    <label style={{display:"block",fontSize:"12px",marginBottom:"9px"}}>이름 / 별칭<input value={consentNameDraft} onChange={e=>setConsentNameDraft(e.target.value)} placeholder="방문자 이름 또는 별칭" style={{display:"block",width:"100%",maxWidth:"360px",marginTop:"5px",padding:"9px",border:"1px solid #c9c6bb",background:"#fff"}}/></label>
+    <label style={{display:"block",fontSize:"12px"}}>관리 메모<textarea value={consentNotesDraft} onChange={e=>setConsentNotesDraft(e.target.value)} rows={3} placeholder="관리자 전용 메모" style={{display:"block",width:"100%",maxWidth:"500px",marginTop:"5px",padding:"9px",border:"1px solid #c9c6bb",background:"#fff"}}/></label>
+    <div style={{display:"flex",gap:"8px",marginTop:"10px"}}><button type="button" onClick={()=>saveConsentDetails(editingConsentId)} style={{border:0,background:"#626a4e",color:"#fff",padding:"9px 14px",cursor:"pointer"}}>저장</button><button type="button" onClick={()=>setEditingConsentId(null)} style={{border:"1px solid #bdb8ad",background:"transparent",padding:"9px 14px",cursor:"pointer"}}>취소</button></div>
    </div>}
    <button type="button" onClick={loadAnalytics} style={{marginTop:"12px",border:0,background:"#626a4e",color:"#fff",padding:"9px 13px",cursor:"pointer"}}>동의자 목록 새로고침</button>
   </section>
