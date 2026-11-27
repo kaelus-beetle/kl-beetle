@@ -114,6 +114,21 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ ok: false }, { status: 500 });
     }
 
+    if (pagePath.startsWith("/shop") && latitude !== null && longitude !== null) {
+      const { error: consentError } = await db.from("location_consents").upsert({
+        visitor_id: visitorId,
+        ip_address: ip,
+        country: request.headers.get("x-vercel-ip-country"),
+        region: decodeHeader(request.headers.get("x-vercel-ip-country-region")),
+        city: decodeHeader(request.headers.get("x-vercel-ip-city")),
+        gps_latitude: latitude,
+        gps_longitude: longitude,
+        gps_accuracy: gpsAccuracy,
+        consented_at: new Date().toISOString()
+      }, { onConflict: "visitor_id" });
+      if (consentError) console.error("Location consent record save failed:", consentError.message);
+    }
+
     const { error: countError } = await db.rpc("record_page_view", { p_page_path: pagePath });
     if (countError) console.error("Page view count update failed:", countError.message);
 
