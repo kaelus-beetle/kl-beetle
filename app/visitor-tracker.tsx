@@ -40,15 +40,30 @@ export function VisitorTracker() {
 
   useEffect(() => {
     if (!pathname || pathname.startsWith("/admin")) return;
+    const eventId = crypto.randomUUID();
+    const startedAt = Date.now();
     fetch("/api/track", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         page_path: pathname,
+        event_id: eventId,
+        referrer: document.referrer,
+        language: navigator.language,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         ...(gpsPosition ? { gps_consent: true, ...gpsPosition } : {})
       }),
       keepalive: true
     }).catch(() => {});
+    return () => {
+      const duration = Math.max(0, Math.round((Date.now() - startedAt) / 1000));
+      fetch("/api/track", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ event_type: "duration", event_id: eventId, duration_seconds: duration }),
+        keepalive: true
+      }).catch(() => {});
+    };
   }, [pathname, gpsPosition]);
 
   function declineLocation() {
