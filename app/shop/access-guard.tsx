@@ -17,8 +17,12 @@ function hasValidConsent() {
 
 export default function ShopAccessGuard({ children }: { children: ReactNode }) {
   const [allowed, setAllowed] = useState(false);
+  const [checked, setChecked] = useState(false);
   useEffect(() => {
-    const refresh = () => setAllowed(hasValidConsent());
+    const refresh = () => {
+      setAllowed(hasValidConsent());
+      setChecked(true);
+    };
     refresh();
     window.addEventListener("klb-gps-consent-updated", refresh);
     window.addEventListener("storage", refresh);
@@ -28,6 +32,7 @@ export default function ShopAccessGuard({ children }: { children: ReactNode }) {
     };
   }, []);
 
+  if (!checked) return null;
   if (!allowed) return <main className="subPage" aria-live="polite" style={{minHeight:"60vh",display:"grid",placeItems:"center"}}><p className="notice">SHOP 이용을 위해 위치 서비스 이용 동의가 필요합니다. 안내창에서 동의하신 후 위치 확인을 완료해 주세요.</p></main>;
   return <>{children}</>;
 }
