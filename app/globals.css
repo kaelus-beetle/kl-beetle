@@ -268,3 +268,11 @@
 /* Keep the shop card crop frame identical on desktop and mobile */
 .shopProductImage{height:auto!important;aspect-ratio:3/2!important;padding:0!important;}
 .shopProductImage img{width:100%;height:100%;object-fit:cover;}
+
+
+/* Crop handles stay fully inside the original photo boundary */
+.photoCropSelection{box-sizing:border-box;}
+.photoCropHandle-nw{left:0;top:0;transform:none;}
+.photoCropHandle-ne{right:0;top:0;transform:none;}
+.photoCropHandle-sw{left:0;bottom:0;transform:none;}
+.photoCropHandle-se{right:0;bottom:0;transform:none;}
