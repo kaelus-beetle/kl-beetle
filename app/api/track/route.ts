@@ -61,13 +61,13 @@ export async function POST(request: NextRequest) {
     const eventId = typeof body.event_id === "string" && /^[0-9a-f-]{36}$/i.test(body.event_id) ? body.event_id : randomUUID();
     const rawReferrer = typeof body.referrer === "string" ? body.referrer.slice(0, 2000) : "";
     let referrerUrl: string | null = null;
-    let referrerSource = existingVisitor ? "직접 접속 / 내부 이동" : "직접 접속";
+    let referrerSource = "직접 접속 / 출처 미제공";
     try {
       if (rawReferrer) {
         const parsed = new URL(rawReferrer);
         const host = parsed.hostname.toLowerCase();
         const ownHost = new URL(request.url).hostname.toLowerCase();
-        if (host !== ownHost && !host.endsWith(".vercel.app") || (host !== ownHost && host !== "kl-beetle.vercel.app")) {
+        if (host !== ownHost && host !== "kl-beetle.vercel.app") {
           referrerUrl = parsed.origin + parsed.pathname.slice(0, 300);
           if (/google\./i.test(host)) referrerSource = "Google";
           else if (/naver\./i.test(host)) referrerSource = "네이버";
