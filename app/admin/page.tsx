@@ -29,9 +29,42 @@ export default function Admin(){
  useEffect(()=>{if(!configured)return;supabase.auth.getSession().then(({data})=>setUser(data.session?.user||null));const {data:{subscription}}=supabase.auth.onAuthStateChange((_e,s)=>setUser(s?.user||null));return()=>subscription.unsubscribe();},[]);
  async function load(){const {data,error}=await supabase.from("products").select("*").order("created_at",{ascending:false});if(error){setMessage(error.message);return;}setItems((data||[]) as Product[]);}
  useEffect(()=>{if(user)load();},[user]);
- useEffect(()=>{if(!cropFile){setCropUrl("");setCropSize({width:0,height:0});return;}const url=URL.createObjectURL(cropFile);setCropUrl(url);const img=new Image();img.onload=()=>{setCropSize({width:img.naturalWidth,height:img.naturalHeight});const aspect=img.naturalWidth/img.naturalHeight;const ratio=targetCropRatio();let w=84,h=84;if(w/h*aspect>ratio)w=h*ratio/aspect;else h=w*aspect/ratio;setCropRect({x:(100-w)/2,y:(100-h)/2,w,h});};img.src=url;return()=>URL.revokeObjectURL(url);},[cropFile]);
- function targetCropRatio(){const key=cropTarget==="product_listing"?"product_listing":typeof cropTarget==="string"&&cropTarget.startsWith("setting:")?cropTarget.slice(8):"";const ratios:Record<string,number>={hero_image:16/9,shop_intro_background:2.5,about_intro_background:2.5,about_image:1.45,about_philosophy_image:1.45,species_muelleri_image:1.24,species_hercules_image:1.24,gallery_1:1.5,gallery_2:1.5,gallery_3:1.5,product:4/3,product_listing:1.5};return ratios[key]||4/3;}
- function initialCropRect(){const stageAspect=cropSize.width&&cropSize.height?cropSize.width/cropSize.height:4/3;const ratio=targetCropRatio();let w=84,h=84;if(w/h*stageAspect>ratio)w=h*ratio/stageAspect;else h=w*stageAspect/ratio;return {x:(100-w)/2,y:(100-h)/2,w,h};}
+ useEffect(()=>{if(!cropFile){setCropUrl("");setCropSize({width:0,height:0});return;}const url=URL.createObjectURL(cropFile);setCropUrl(url);const img=new Image();img.onload=()=>{setCropSize({width:img.naturalWidth,height:img.naturalHeight});};img.src=url;return()=>URL.revokeObjectURL(url);},[cropFile]);
+ useEffect(()=>{if(!cropSize.width||!cropSize.height)return;const target=cropPreviewInfo();const ratio=target.ratio;const sourceAspect=cropSize.width/cropSize.height;const ratioPercent=ratio/sourceAspect;const maxW=Math.min(100,target.width/cropSize.width*100,(target.height/cropSize.height*100)*ratioPercent);const maxH=maxW/ratioPercent;const w=maxW*.84,h=maxH*.84;setCropRect({x:(100-w)/2,y:(100-h)/2,w,h});},[cropSize.width,cropSize.height,cropTarget,cropPreviewDevice]);
+ function cropPreviewInfo(){
+  const key=cropTarget==="product"||cropTarget==="product_listing"?"product_listing":typeof cropTarget==="string"&&cropTarget.startsWith("setting:")?cropTarget.slice(8):"";
+  const targets:Record<string,{label:string;pcWidth:number;pcHeight:number;mobileWidth:number;mobileHeight:number}>={
+   hero_image:{label:"홈 메인 배경",pcWidth:1440,pcHeight:810,mobileWidth:390,mobileHeight:585},
+   shop_intro_background:{label:"SHOP 상단 배경",pcWidth:1440,pcHeight:576,mobileWidth:390,mobileHeight:290},
+   about_intro_background:{label:"ABOUT 상단 배경",pcWidth:1440,pcHeight:576,mobileWidth:390,mobileHeight:290},
+   about_image:{label:"ABOUT 브리더 프로필",pcWidth:560,pcHeight:386,mobileWidth:350,mobileHeight:292},
+   about_philosophy_image:{label:"ABOUT 철학 소개 사진",pcWidth:560,pcHeight:386,mobileWidth:350,mobileHeight:350},
+   species_muelleri_image:{label:"뮤엘러리 사진 영역",pcWidth:390,pcHeight:315,mobileWidth:250,mobileHeight:300},
+   species_hercules_image:{label:"헤라클레스 사진 영역",pcWidth:390,pcHeight:315,mobileWidth:250,mobileHeight:300},
+   gallery_1:{label:"홈 갤러리 사진",pcWidth:360,pcHeight:265,mobileWidth:360,mobileHeight:250},
+   gallery_2:{label:"홈 갤러리 사진",pcWidth:360,pcHeight:265,mobileWidth:360,mobileHeight:250},
+   gallery_3:{label:"홈 갤러리 사진",pcWidth:360,pcHeight:265,mobileWidth:360,mobileHeight:250},
+   product_listing:{label:"SHOP 상품 카드 사진",pcWidth:360,pcHeight:240,mobileWidth:360,mobileHeight:240}
+  };
+  const info=targets[key]||{label:"사진 표시 영역",pcWidth:360,pcHeight:270,mobileWidth:360,mobileHeight:270};
+  const width=cropPreviewDevice==="pc"?info.pcWidth:info.mobileWidth;
+  const height=cropPreviewDevice==="pc"?info.pcHeight:info.mobileHeight;
+  return {...info,width,height,ratio:width/height};
+ }
+ function targetCropRatio(){return cropPreviewInfo().ratio;}
+ function cropMaxBounds(){
+  const target=cropPreviewInfo();
+  const sourceW=Math.max(1,cropSize.width),sourceH=Math.max(1,cropSize.height);
+  const ratioPercent=target.ratio/(sourceW/sourceH);
+  const maxW=Math.min(100,target.width/sourceW*100,(target.height/sourceH*100)*ratioPercent);
+  const maxH=maxW/ratioPercent;
+  return {maxW,maxH,ratioPercent};
+ }
+ function initialCropRect(){
+  const {maxW,maxH}=cropMaxBounds();
+  const w=maxW*.84,h=maxH*.84;
+  return {x:(100-w)/2,y:(100-h)/2,w,h};
+ }
  function beginCrop(files:File[],target:"product"| "product_listing"|string){if(!files.length)return;setCropQueue(files);setCropIndex(0);setCropDone([]);setCropTarget(target);setCropFile(files[0]);setCropRatio("4:3");setCropZoom(1);setCropOffset({x:0,y:0});setCropRect({x:8,y:8,w:84,h:84});}
  function cropPreviewInfo(){
   const key=cropTarget==="product"?"product":typeof cropTarget==="string"&&cropTarget.startsWith("setting:")?cropTarget.slice(8):"";
@@ -74,7 +107,9 @@ export default function Admin(){
   const ratioPercent=targetCropRatio()/(rect.width/rect.height);
   const availableX=left?o.x+o.w:100-o.x;
   const availableY=top?o.y+o.h:100-o.y;
-  const maxWidth=Math.min(availableX,availableY*ratioPercent);
+  const target=cropPreviewInfo();
+  const maxTargetWidth=Math.min(100,target.width/cropSize.width*100,(target.height/cropSize.height*100)*ratioPercent);
+  const maxWidth=Math.min(availableX,availableY*ratioPercent,maxTargetWidth);
   const horizontalDelta=left?-dx:dx;
   const verticalDelta=top?-dy:dy;
   const widthDelta=Math.abs(horizontalDelta)>=Math.abs(verticalDelta*ratioPercent)?horizontalDelta:verticalDelta*ratioPercent;
@@ -208,7 +243,7 @@ export default function Admin(){
  {cropFile&&<div className="photoCropOverlay" role="dialog" aria-modal="true" aria-label="사진 편집">
   <div className="photoCropDialog">
    <div className="photoCropHeader"><div><p className="eyebrow">KL BEETLE / PHOTO EDITOR</p><h2>사진 위치 및 크기 조절</h2><small>{cropIndex+1} / {cropQueue.length}장 편집 중</small></div><button type="button" onClick={()=>{setCropFile(null);setCropQueue([]);setCropDone([]);setCropTarget(null);}}>닫기</button></div>
-   <p className="photoCropHint">원본 사진 경계 안에서만 자를 수 있어. 네 꼭짓점은 표시 비율을 유지하며 움직이고, 사진 바깥으로 넘어가지 않아. 안쪽을 드래그해 위치를 옮겨줘.</p>
+   <p className="photoCropHint">사이트에 표시되는 사진의 실제 크기를 최대 자르기 크기로 제한했어. 네 꼭짓점은 표시 비율과 최대 가로·세로 픽셀을 넘지 않고, 안쪽을 드래그하면 위치를 옮길 수 있어.</p>
    <div className="photoCropWorkspace">
     <div className="photoCropEditorColumn">
      <strong className="photoCropSectionTitle">원본 사진 · 표시할 영역 선택</strong>
@@ -222,7 +257,7 @@ export default function Admin(){
     </div>
    </div>
    <div className="photoCropControls">
-    <label>표시 영역 비율 <strong>{targetCropRatio().toFixed(2)} : 1 (자동 고정)</strong></label>
+    <label>표시 영역 최대 크기 <strong>{cropPreviewInfo().width} × {cropPreviewInfo().height}px</strong></label>
     <label>확대 / 축소 <strong>{Math.round(cropZoom*100)}%</strong><input type="range" min="1" max="3" step=".01" value={cropZoom} onChange={e=>setCropZoom(Number(e.target.value))}/></label>
    </div>
    <div className="photoCropActions"><button type="button" className="photoCropReset" onClick={()=>{setCropRect(initialCropRect());}}>자르기 영역 초기화</button><button type="button" onClick={finishCrop}> {cropIndex+1<cropQueue.length?"다음 사진":"편집 완료"} </button></div>
