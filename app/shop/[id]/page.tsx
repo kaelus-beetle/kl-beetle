@@ -14,7 +14,7 @@ export default async function ProductDetail({params}:{params:Promise<{id:string}
  const facts=[["학명",p.scientific_name],["산지",p.origin],["크기",p.specimen_size],["성별",p.sex]].filter((item):item is [string,string]=>Boolean(item[1]?.trim()));
  return <main className="subPage">
   <section className="pageIntro"><p className="eyebrow">KL BEETLE / SPECIMEN DETAIL</p><h1 style={{fontSize:"clamp(34px,6vw,64px)"}}>{p.title}</h1>{p.scientific_name&&<p style={{fontStyle:"italic"}}>{p.scientific_name}</p>}</section>
-  <section style={{maxWidth:"1180px",margin:"0 auto",padding:"55px 7vw 100px",display:"grid",gridTemplateColumns:"minmax(0,1.1fr) minmax(280px,.9fr)",gap:"clamp(30px,6vw,80px)",alignItems:"start"}}>
+  <section className="productDetailLayout" style={{maxWidth:"1180px",margin:"0 auto",padding:"55px 7vw 100px",display:"grid",gridTemplateColumns:"minmax(0,1.1fr) minmax(280px,.9fr)",gap:"clamp(30px,6vw,80px)",alignItems:"start"}}>
    <ProductPhotoGallery title={p.title} photos={photos}/>
    <div style={{color:"#292d25"}}>
     <h2 style={{fontSize:"30px",fontWeight:400,margin:"12px 0 22px"}}>{p.title}</h2>
