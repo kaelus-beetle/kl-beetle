@@ -395,3 +395,25 @@
  .productDetailPhotoButton img{display:block!important;width:100%!important;height:auto!important;max-width:none!important;max-height:82svh!important;min-height:0!important;object-fit:contain!important;object-position:center!important;}
  .subPage section[style*="grid-template-columns:minmax"]>div:last-child{padding:0 7vw;}
 }
+
+
+/* ABOUT specimen crop: editor export and visible frame use the same undistorted 4:3 ratio on every screen. */
+.speciesImage{width:100%!important;height:auto!important;min-height:0!important;aspect-ratio:4/3!important;overflow:hidden!important;background:#dedbd2;display:block!important;}
+.speciesImage img{display:block!important;width:100%!important;height:100%!important;max-width:none!important;max-height:none!important;object-fit:cover!important;object-position:center!important;}
+@media(max-width:700px){
+ .speciesImage{width:100%!important;height:auto!important;min-height:0!important;aspect-ratio:4/3!important;}
+ .speciesImage img{width:100%!important;height:100%!important;object-fit:cover!important;}
+}
+
+/* Swipe/drag navigation for enlarged SHOP specimen photos. */
+.productPhotoLightbox{touch-action:pan-y;}
+.productPhotoLightbox>img{touch-action:none;user-select:none;-webkit-user-drag:none;cursor:grab;}
+.productPhotoLightbox>img:active{cursor:grabbing;}
+.productPhotoLightboxNav{position:absolute;top:50%;z-index:3;transform:translateY(-50%);width:48px;height:64px;border:1px solid rgba(255,255,255,.4);background:rgba(0,0,0,.35);color:#fff;font-size:42px;line-height:1;cursor:pointer;}
+.productPhotoLightboxPrev{left:14px;}
+.productPhotoLightboxNext{right:14px;}
+@media(max-width:700px){
+ .productPhotoLightboxNav{width:42px;height:58px;font-size:36px;}
+ .productPhotoLightboxPrev{left:8px;}
+ .productPhotoLightboxNext{right:8px;}
+}
