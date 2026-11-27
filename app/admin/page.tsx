@@ -40,7 +40,7 @@ export default function Admin(){
   if(images.length){const uploaded:string[]=[];for(let i=0;i<images.length;i++){const file=images[i];const path=`products/${Date.now()}-${i}-${file.name.replace(/[^a-zA-Z0-9.-]/g,"_")}`;const {error:upErr}=await supabase.storage.from("kl-beetle-images").upload(path,file);if(upErr){setMessage("사진 업로드 실패: "+upErr.message);return;}uploaded.push(supabase.storage.from("kl-beetle-images").getPublicUrl(path).data.publicUrl);}image_urls=uploaded;}
   const image_url=image_urls[0]||null;
   const values={title,price,category,image_url,image_urls,scientific_name:scientificName,origin,specimen_size:specimenSize,sex,specimen_description:specimenDescription};
-  const result=editingId!==null?await supabase.from("products").update(values).eq("id",editingId).select("id").single():await supabase.from("products").insert({...values,is_sold:false}).select("id").single();
+  const result=editingId!==null?await supabase.from("products").update(values).eq("id",editingId):await supabase.from("products").insert({...values,is_sold:false});
   if(result.error){setMessage("저장 실패: "+result.error.message);return;}
   setMessage(editingId!==null?"판매글을 수정했습니다.":"판매글을 등록했습니다.");clearForm();await load();
  }
