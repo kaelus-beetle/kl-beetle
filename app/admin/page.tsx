@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { supabase, configured } from "../../lib/supabase";
 
-type VisitorLog = { id:number; visitor_id:string; ip_address:string|null; country:string|null; region:string|null; city:string|null; device:string|null; operating_system:string|null; browser:string|null; page_path:string; created_at:string; gps_latitude:number|null; gps_longitude:number|null; gps_accuracy:number|null; gps_consent_at:string|null };
+type VisitorLog = { id:number; visitor_id:string; ip_address:string|null; country:string|null; region:string|null; city:string|null; device:string|null; operating_system:string|null; browser:string|null; page_path:string; created_at:string; gps_latitude:number|null; gps_longitude:number|null; gps_accuracy:number|null; gps_consent_at:string|null; referrer_url:string|null; referrer_source:string|null; browser_language:string|null; timezone:string|null; is_returning:boolean; duration_seconds:number|null };
 type Product = { id:number; title:string; price:string|null; image_url:string|null; listing_image_url?:string|null; listing_image_ratio?:string|null; image_urls?:string[]|null; category:string|null; is_sold:boolean; scientific_name?:string|null; origin?:string|null; specimen_size?:string|null; sex?:string|null; specimen_description?:string|null };
 const imageSlots=[{key:"hero_image",label:"메인 배경 사진"},{key:"shop_intro_background",label:"SHOP 상단 자연 배경 사진"},{key:"about_intro_background",label:"ABOUT 상단 MEET THE BREEDER 배경"},{key:"about_image",label:"ABOUT 브리더 프로필 사진"},{key:"about_philosophy_image",label:"ABOUT Small wonders 아래 사진"},{key:"species_muelleri_image",label:"ABOUT 뮤엘러리사슴벌레 사진"},{key:"species_hercules_image",label:"ABOUT 헤라클레스장수풍뎅이 사진"},{key:"gallery_1",label:"갤러리 사진 1"},{key:"gallery_2",label:"갤러리 사진 2"},{key:"gallery_3",label:"갤러리 사진 3"}];
 
@@ -25,7 +25,7 @@ export default function Admin(){
  const [cropRect,setCropRect]=useState({x:8,y:8,w:84,h:84});
  const [cropPreviewDevice,setCropPreviewDevice]=useState<"pc"|"mobile">("pc");
  const cropStageRef=useRef<HTMLDivElement>(null);
- const cropDragRef=useRef<{mode:"move"|"nw"|"ne"|"sw"|"se";startX:number;startY:number;origin:{x:number;y:number;w:number;h:number}}|null>(null); const [visitorLogs,setVisitorLogs]=useState<VisitorLog[]>([]); const [selectedVisitorIds,setSelectedVisitorIds]=useState<number[]>([]); const [totalViews,setTotalViews]=useState(0); const [uniqueVisitors,setUniqueVisitors]=useState(0); const [productViews,setProductViews]=useState<Record<number,number>>({}); const [editingId,setEditingId]=useState<number|null>(null); const [editingImages,setEditingImages]=useState<string[]>([]); const [message,setMessage]=useState(""); const [uploading,setUploading]=useState<string|null>(null);
+ const cropDragRef=useRef<{mode:"move"|"nw"|"ne"|"sw"|"se";startX:number;startY:number;origin:{x:number;y:number;w:number;h:number}}|null>(null); const [visitorLogs,setVisitorLogs]=useState<VisitorLog[]>([]); const [selectedVisitorIds,setSelectedVisitorIds]=useState<number[]>([]); const [totalViews,setTotalViews]=useState(0); const [uniqueVisitors,setUniqueVisitors]=useState(0); const [activeVisitors,setActiveVisitors]=useState(0); const [productViews,setProductViews]=useState<Record<number,number>>({}); const [editingId,setEditingId]=useState<number|null>(null); const [editingImages,setEditingImages]=useState<string[]>([]); const [message,setMessage]=useState(""); const [uploading,setUploading]=useState<string|null>(null);
  useEffect(()=>{if(!configured)return;supabase.auth.getSession().then(({data})=>setUser(data.session?.user||null));const {data:{subscription}}=supabase.auth.onAuthStateChange((_e,s)=>setUser(s?.user||null));return()=>subscription.unsubscribe();},[]);
  async function load(){const {data,error}=await supabase.from("products").select("*").order("created_at",{ascending:false});if(error){setMessage(error.message);return;}setItems((data||[]) as Product[]);}
  useEffect(()=>{if(user)load();},[user]);
@@ -125,12 +125,14 @@ export default function Admin(){
   setCropFile(null);setCropQueue([]);setCropDone([]);setCropTarget(null);
  }
  async function loadAnalytics(){
-  const [{data:summary,error:summaryError},{data:logs,error:logsError},{data:counts,error:countsError}]=await Promise.all([
+  const [{data:summary,error:summaryError},{data:logs,error:logsError},{data:counts,error:countsError},{data:active,error:activeError}]=await Promise.all([
    supabase.rpc("get_visitor_summary"),
    supabase.from("visitor_logs").select("*").order("created_at",{ascending:false}).limit(100),
-   supabase.from("page_view_counts").select("page_path,view_count")
+   supabase.from("page_view_counts").select("page_path,view_count"),
+   supabase.rpc("get_active_visitor_count")
   ]);
   if(!summaryError&&summary?.[0]){setTotalViews(Number(summary[0].total_views||0));setUniqueVisitors(Number(summary[0].unique_visitors||0));}
+  if(!activeError)setActiveVisitors(Number(active||0));
   if(!logsError){setVisitorLogs((logs||[]) as VisitorLog[]);setSelectedVisitorIds([]);}
   if(!countsError){
    const countMap=Object.fromEntries((counts||[]).map((row:any)=>[row.page_path,Number(row.view_count||0)]));
@@ -184,6 +186,7 @@ export default function Admin(){
   <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(150px,1fr))",gap:"12px",margin:"20px 0"}}>
    <div style={{padding:"18px",background:"#faf8f3",border:"1px solid #d5d0c5"}}><small>누적 페이지 조회</small><strong style={{display:"block",fontSize:"28px",marginTop:"8px"}}>{totalViews.toLocaleString("ko-KR")}</strong></div>
    <div style={{padding:"18px",background:"#faf8f3",border:"1px solid #d5d0c5"}}><small>누적 방문자(브라우저 기준)</small><strong style={{display:"block",fontSize:"28px",marginTop:"8px"}}>{uniqueVisitors.toLocaleString("ko-KR")}</strong></div>
+   <div style={{padding:"18px",background:"#faf8f3",border:"1px solid #d5d0c5"}}><small>최근 5분 접속자</small><strong style={{display:"block",fontSize:"28px",marginTop:"8px"}}>{activeVisitors.toLocaleString("ko-KR")}</strong></div>
   </div>
   <h3 style={{fontWeight:400,marginTop:"28px"}}>게시글별 조회수</h3>
   {items.length===0?<p>등록된 게시글이 없어.</p>:items.map(p=><div key={p.id} style={{display:"flex",justifyContent:"space-between",gap:"12px",padding:"11px 0",borderBottom:"1px solid #d5d0c5",fontSize:"13px"}}><span>{p.title}</span><strong>{(productViews[p.id]??0).toLocaleString("ko-KR")}회</strong></div>)}
@@ -194,16 +197,20 @@ export default function Admin(){
    <button type="button" onClick={()=>setSelectedVisitorIds(visitorLogs.map(v=>v.id))} disabled={!visitorLogs.length} style={{border:"1px solid #bdb8ad",background:"transparent",padding:"9px 13px",cursor:"pointer"}}>현재 목록 전체 선택</button>
   </div>
   <div style={{overflowX:"auto"}}>
-   <table style={{width:"100%",borderCollapse:"collapse",fontSize:"11px",minWidth:"920px"}}>
-    <thead><tr><th style={{textAlign:"left",padding:"10px 8px",borderBottom:"1px solid #bdb8ad"}}><input aria-label="현재 목록 전체 선택" type="checkbox" checked={visitorLogs.length>0&&visitorLogs.every(v=>selectedVisitorIds.includes(v.id))} onChange={e=>setSelectedVisitorIds(e.target.checked?visitorLogs.map(v=>v.id):[])} /></th>{["접속 시간","IP 주소","접속 지역","GPS 위치","기기 / OS","브라우저","방문 페이지"].map(x=><th key={x} style={{textAlign:"left",padding:"10px 8px",borderBottom:"1px solid #bdb8ad"}}>{x}</th>)}</tr></thead>
+   <table style={{width:"100%",borderCollapse:"collapse",fontSize:"11px",minWidth:"1450px"}}>
+    <thead><tr><th style={{textAlign:"left",padding:"10px 8px",borderBottom:"1px solid #bdb8ad"}}><input aria-label="현재 목록 전체 선택" type="checkbox" checked={visitorLogs.length>0&&visitorLogs.every(v=>selectedVisitorIds.includes(v.id))} onChange={e=>setSelectedVisitorIds(e.target.checked?visitorLogs.map(v=>v.id):[])} /></th>{["접속 시간","IP 주소","접속 지역","기기 / OS","브라우저","유입 경로","체류 시간","방문 유형","언어 / 시간대","GPS 위치","방문 페이지"].map(x=><th key={x} style={{textAlign:"left",padding:"10px 8px",borderBottom:"1px solid #bdb8ad"}}>{x}</th>)}</tr></thead>
     <tbody>{visitorLogs.map(v=><tr key={v.id}>
      <td style={{padding:"10px 8px",borderBottom:"1px solid #e0dcd3"}}><input aria-label={`방문 기록 ${v.id} 선택`} type="checkbox" checked={selectedVisitorIds.includes(v.id)} onChange={e=>setSelectedVisitorIds(old=>e.target.checked?[...old,v.id]:old.filter(id=>id!==v.id))}/></td>
      <td style={{padding:"10px 8px",borderBottom:"1px solid #e0dcd3",whiteSpace:"nowrap"}}>{new Date(v.created_at).toLocaleString("ko-KR",{timeZone:"Asia/Seoul"})}</td>
      <td style={{padding:"10px 8px",borderBottom:"1px solid #e0dcd3",whiteSpace:"nowrap"}}>{v.ip_address||"확인 불가"}</td>
      <td style={{padding:"10px 8px",borderBottom:"1px solid #e0dcd3"}}>{[v.country,v.region,v.city].filter(Boolean).join(" · ")||"확인 불가"}</td>
-     <td style={{padding:"10px 8px",borderBottom:"1px solid #e0dcd3",minWidth:"150px"}}>{v.gps_latitude!==null&&v.gps_longitude!==null?<><a href={`https://www.google.com/maps?q=${v.gps_latitude},${v.gps_longitude}`} target="_blank" rel="noreferrer" style={{color:"#526044",textDecoration:"underline"}}>지도에서 위치 보기</a><div style={{marginTop:4,color:"#777"}}>{Number(v.gps_latitude).toFixed(6)}, {Number(v.gps_longitude).toFixed(6)}</div><small style={{color:"#777"}}>오차 약 {v.gps_accuracy!==null?Math.round(v.gps_accuracy)+"m":"정보 없음"}</small></>:<span style={{color:"#888"}}>GPS 미동의 / 확인 불가</span>}</td>
      <td style={{padding:"10px 8px",borderBottom:"1px solid #e0dcd3"}}>{[v.device,v.operating_system].filter(Boolean).join(" / ")||"-"}</td>
      <td style={{padding:"10px 8px",borderBottom:"1px solid #e0dcd3"}}>{v.browser||"-"}</td>
+     <td style={{padding:"10px 8px",borderBottom:"1px solid #e0dcd3",minWidth:"130px"}}><strong>{v.referrer_source||"기존 기록"}</strong>{v.referrer_url&&<div style={{marginTop:3,maxWidth:190,overflowWrap:"anywhere"}}><a href={v.referrer_url} target="_blank" rel="noreferrer" style={{color:"#526044"}}>{new URL(v.referrer_url).hostname}</a></div>}</td>
+     <td style={{padding:"10px 8px",borderBottom:"1px solid #e0dcd3",whiteSpace:"nowrap"}}>{v.duration_seconds===null?"측정 전":v.duration_seconds<60?`${v.duration_seconds}초`:`${Math.floor(v.duration_seconds/60)}분 ${v.duration_seconds%60}초`}</td>
+     <td style={{padding:"10px 8px",borderBottom:"1px solid #e0dcd3",whiteSpace:"nowrap"}}>{v.is_returning?"재방문":"첫 방문"}</td>
+     <td style={{padding:"10px 8px",borderBottom:"1px solid #e0dcd3"}}>{[v.browser_language,v.timezone].filter(Boolean).join(" / ")||"-"}</td>
+     <td style={{padding:"10px 8px",borderBottom:"1px solid #e0dcd3",minWidth:"150px"}}>{v.gps_latitude!==null&&v.gps_longitude!==null?<><a href={`https://www.google.com/maps?q=${v.gps_latitude},${v.gps_longitude}`} target="_blank" rel="noreferrer" style={{color:"#526044",textDecoration:"underline"}}>지도에서 위치 보기</a><div style={{marginTop:4,color:"#777"}}>{Number(v.gps_latitude).toFixed(6)}, {Number(v.gps_longitude).toFixed(6)}</div><small style={{color:"#777"}}>오차 약 {v.gps_accuracy!==null?Math.round(v.gps_accuracy)+"m":"정보 없음"}</small></>:<span style={{color:"#888"}}>GPS 미동의 / 확인 불가</span>}</td>
      <td style={{padding:"10px 8px",borderBottom:"1px solid #e0dcd3"}}>{v.page_path}</td>
     </tr>)}</tbody>
    </table>
