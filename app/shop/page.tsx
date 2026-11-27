@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { supabase, configured } from "../../lib/supabase";
 
-type Product = { id:number; title:string; price:string|null; image_url:string|null; category:string|null; is_sold:boolean };
+type Product = { id:number; title:string; price:string|null; image_url:string|null; listing_image_url?:string|null; category:string|null; is_sold:boolean };
 export const dynamic = "force-dynamic";
 
 export default async function Shop() {
@@ -14,7 +14,7 @@ export default async function Shop() {
   <section className="shopProductGrid" aria-label="판매 상품 목록">
    {items.map(p=><Link href={`/shop/${p.id}`} key={p.id} className="shopProductCard">
     <div className="shopProductImage">
-     {p.image_url?<img src={p.image_url} alt={p.title}/>:<div className="shopProductPlaceholder">KL BEETLE</div>}
+     {(p.listing_image_url||p.image_url)?<img src={p.listing_image_url||p.image_url} alt={p.title}/>:<div className="shopProductPlaceholder">KL BEETLE</div>}
      {p.is_sold&&<b className="shopSoldBadge">SOLD OUT</b>}
     </div>
     <div className="shopProductInfo">
