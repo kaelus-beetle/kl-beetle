@@ -30,7 +30,7 @@ export default async function Home() {
     <section className="homePhilosophy">
       <div className="homePhilosophyCopy">
         <p className="homeEyebrow dark">OUR PHILOSOPHY</p>
-        <h2>P. muelleri &amp;<br/>Hercules.</h2>
+        <h2>Nature, in every detail.</h2>
         <p className="homeKoreanCopy">곤충이 가진 형태와 생명력, 그리고 한 세대씩 이어지는 브리딩의 가치. KL BEETLE은 개체 하나하나의 매력을 관찰하고 기록하며, 정성을 담아 사육한 곤충들을 소개합니다.</p>
         <Link className="homeTextLink" href="/about">MEET THE BREEDER ↗</Link>
       </div>
@@ -43,7 +43,6 @@ export default async function Home() {
             <img src={src} alt={species[i] + " — " + korean[i]}/>
             <div className="homeGalleryCaption">
               <strong>{labels[i]}</strong>
-              <span>{species[i]} · {korean[i]}</span>
             </div>
           </div>;
           if (i === 2) return <a href="https://open.kakao.com/o/sunFEYTi" target="_blank" rel="noreferrer" key={i}>{card}</a>;
