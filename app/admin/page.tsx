@@ -3,6 +3,7 @@ import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } f
 import { supabase, configured } from "../../lib/supabase";
 
 type VisitorLog = { id:number; visitor_id:string; ip_address:string|null; country:string|null; region:string|null; city:string|null; device:string|null; operating_system:string|null; browser:string|null; page_path:string; created_at:string; gps_latitude:number|null; gps_longitude:number|null; gps_accuracy:number|null; gps_consent_at:string|null; referrer_url:string|null; referrer_source:string|null; browser_language:string|null; timezone:string|null; is_returning:boolean; duration_seconds:number|null };
+type LocationConsent = { id:number; visitor_id:string; ip_address:string|null; country:string|null; region:string|null; city:string|null; gps_latitude:number; gps_longitude:number; gps_accuracy:number|null; consented_at:string; display_name:string|null; notes:string|null };
 type Product = { id:number; title:string; price:string|null; image_url:string|null; listing_image_url?:string|null; listing_image_ratio?:string|null; image_urls?:string[]|null; category:string|null; is_sold:boolean; scientific_name?:string|null; origin?:string|null; specimen_size?:string|null; sex?:string|null; specimen_description?:string|null };
 const imageSlots=[{key:"hero_image",label:"메인 배경 사진"},{key:"shop_intro_background",label:"SHOP 상단 자연 배경 사진"},{key:"about_intro_background",label:"ABOUT 상단 MEET THE BREEDER 배경"},{key:"about_image",label:"ABOUT 브리더 프로필 사진"},{key:"about_philosophy_image",label:"ABOUT Small wonders 아래 사진"},{key:"species_muelleri_image",label:"ABOUT 뮤엘러리사슴벌레 사진"},{key:"species_hercules_image",label:"ABOUT 헤라클레스장수풍뎅이 사진"},{key:"gallery_1",label:"갤러리 사진 1"},{key:"gallery_2",label:"갤러리 사진 2"},{key:"gallery_3",label:"갤러리 사진 3"}];
 
@@ -25,7 +26,7 @@ export default function Admin(){
  const [cropRect,setCropRect]=useState({x:8,y:8,w:84,h:84});
  const [cropPreviewDevice,setCropPreviewDevice]=useState<"pc"|"mobile">("pc");
  const cropStageRef=useRef<HTMLDivElement>(null);
- const cropDragRef=useRef<{mode:"move"|"nw"|"ne"|"sw"|"se";startX:number;startY:number;origin:{x:number;y:number;w:number;h:number}}|null>(null); const [visitorLogs,setVisitorLogs]=useState<VisitorLog[]>([]); const [selectedVisitorIds,setSelectedVisitorIds]=useState<number[]>([]); const [totalViews,setTotalViews]=useState(0); const [uniqueVisitors,setUniqueVisitors]=useState(0); const [activeVisitors,setActiveVisitors]=useState(0); const [productViews,setProductViews]=useState<Record<number,number>>({}); const [editingId,setEditingId]=useState<number|null>(null); const [editingImages,setEditingImages]=useState<string[]>([]); const [message,setMessage]=useState(""); const [uploading,setUploading]=useState<string|null>(null);
+ const cropDragRef=useRef<{mode:"move"|"nw"|"ne"|"sw"|"se";startX:number;startY:number;origin:{x:number;y:number;w:number;h:number}}|null>(null); const [visitorLogs,setVisitorLogs]=useState<VisitorLog[]>([]); const [locationConsents,setLocationConsents]=useState<LocationConsent[]>([]); const [selectedVisitorIds,setSelectedVisitorIds]=useState<number[]>([]); const [totalViews,setTotalViews]=useState(0); const [uniqueVisitors,setUniqueVisitors]=useState(0); const [activeVisitors,setActiveVisitors]=useState(0); const [productViews,setProductViews]=useState<Record<number,number>>({}); const [editingId,setEditingId]=useState<number|null>(null); const [editingImages,setEditingImages]=useState<string[]>([]); const [message,setMessage]=useState(""); const [uploading,setUploading]=useState<string|null>(null);
  useEffect(()=>{if(!configured)return;supabase.auth.getSession().then(({data})=>setUser(data.session?.user||null));const {data:{subscription}}=supabase.auth.onAuthStateChange((_e,s)=>setUser(s?.user||null));return()=>subscription.unsubscribe();},[]);
  async function load(){const {data,error}=await supabase.from("products").select("*").order("created_at",{ascending:false});if(error){setMessage(error.message);return;}setItems((data||[]) as Product[]);}
  useEffect(()=>{if(user)load();},[user]);
@@ -125,15 +126,17 @@ export default function Admin(){
   setCropFile(null);setCropQueue([]);setCropDone([]);setCropTarget(null);
  }
  async function loadAnalytics(){
-  const [{data:summary,error:summaryError},{data:logs,error:logsError},{data:counts,error:countsError},{data:active,error:activeError}]=await Promise.all([
+  const [{data:summary,error:summaryError},{data:logs,error:logsError},{data:counts,error:countsError},{data:active,error:activeError},{data:consents,error:consentsError}]=await Promise.all([
    supabase.rpc("get_visitor_summary"),
    supabase.from("visitor_logs").select("*").order("created_at",{ascending:false}).limit(100),
    supabase.from("page_view_counts").select("page_path,view_count"),
-   supabase.rpc("get_active_visitor_count")
+   supabase.rpc("get_active_visitor_count"),
+   supabase.from("location_consents").select("*").order("consented_at",{ascending:false}).limit(500)
   ]);
   if(!summaryError&&summary?.[0]){setTotalViews(Number(summary[0].total_views||0));setUniqueVisitors(Number(summary[0].unique_visitors||0));}
   if(!activeError)setActiveVisitors(Number(active||0));
   if(!logsError){setVisitorLogs((logs||[]) as VisitorLog[]);setSelectedVisitorIds([]);}
+  if(!consentsError)setLocationConsents((consents||[]) as LocationConsent[]);
   if(!countsError){
    const countMap=Object.fromEntries((counts||[]).map((row:any)=>[row.page_path,Number(row.view_count||0)]));
    setProductViews(Object.fromEntries(items.map(p=>[p.id,countMap[`/shop/${p.id}`]||0])));
@@ -188,6 +191,25 @@ export default function Admin(){
    <div style={{padding:"18px",background:"#faf8f3",border:"1px solid #d5d0c5"}}><small>누적 방문자(브라우저 기준)</small><strong style={{display:"block",fontSize:"28px",marginTop:"8px"}}>{uniqueVisitors.toLocaleString("ko-KR")}</strong></div>
    <div style={{padding:"18px",background:"#faf8f3",border:"1px solid #d5d0c5"}}><small>최근 5분 접속자</small><strong style={{display:"block",fontSize:"28px",marginTop:"8px"}}>{activeVisitors.toLocaleString("ko-KR")}</strong></div>
   </div>
+  <section style={{margin:"28px 0",padding:"18px",border:"1px solid #d5d0c5",background:"#fffdf8"}}>
+   <h3 style={{fontWeight:400,margin:"0 0 8px"}}>위치 동의자 관리</h3>
+   <p style={{fontSize:"12px",lineHeight:1.7,color:"#68695f"}}>SHOP 위치 서비스 이용에 동의한 방문자 목록입니다. 이름과 메모는 관리자 전용으로 저장됩니다. 최대 500명까지 표시됩니다.</p>
+   {locationConsents.length===0?<p style={{fontSize:"13px",color:"#777"}}>저장된 위치 동의자가 없습니다. SQL 설정을 완료하면 이후 동의자부터 기록됩니다.</p>:<div style={{overflowX:"auto"}}>
+    <table style={{width:"100%",minWidth:"1050px",borderCollapse:"collapse",fontSize:"12px"}}>
+     <thead><tr>{["동의 시각","이름 / 별칭","IP 주소","접속 지역","GPS 주소(좌표)","정확도","관리 메모"].map(x=><th key={x} style={{textAlign:"left",padding:"9px",borderBottom:"1px solid #bdb8ad"}}>{x}</th>)}</tr></thead>
+     <tbody>{locationConsents.map(v=><tr key={v.id}>
+      <td style={{padding:"9px",borderBottom:"1px solid #e0dcd3",whiteSpace:"nowrap"}}>{new Date(v.consented_at).toLocaleString("ko-KR",{timeZone:"Asia/Seoul"})}</td>
+      <td style={{padding:"9px",borderBottom:"1px solid #e0dcd3"}}><input aria-label="방문자 이름 또는 별칭" defaultValue={v.display_name||""} placeholder="이름 / 별칭" onBlur={async e=>{const value=e.currentTarget.value.trim();const {error}=await supabase.from("location_consents").update({display_name:value||null}).eq("id",v.id);if(error)setMessage("이름 저장 실패: "+error.message);else setLocationConsents(old=>old.map(x=>x.id===v.id?{...x,display_name:value||null}:x));}} style={{width:"140px",padding:"7px",border:"1px solid #ccc"}}/></td>
+      <td style={{padding:"9px",borderBottom:"1px solid #e0dcd3",whiteSpace:"nowrap"}}>{v.ip_address||"확인 불가"}</td>
+      <td style={{padding:"9px",borderBottom:"1px solid #e0dcd3"}}>{[v.country,v.region,v.city].filter(Boolean).join(" · ")||"확인 불가"}</td>
+      <td style={{padding:"9px",borderBottom:"1px solid #e0dcd3",whiteSpace:"nowrap"}}><a href={`https://www.google.com/maps?q=${v.gps_latitude},${v.gps_longitude}`} target="_blank" rel="noreferrer" style={{color:"#526044",textDecoration:"underline"}}>지도에서 GPS 위치 보기</a><div style={{fontSize:"11px",color:"#777",marginTop:4}}>{Number(v.gps_latitude).toFixed(6)}, {Number(v.gps_longitude).toFixed(6)}</div></td>
+      <td style={{padding:"9px",borderBottom:"1px solid #e0dcd3",whiteSpace:"nowrap"}}>{v.gps_accuracy===null?"-":`약 ${Math.round(v.gps_accuracy)}m`}</td>
+      <td style={{padding:"9px",borderBottom:"1px solid #e0dcd3"}}><textarea aria-label="방문자 관리 메모" defaultValue={v.notes||""} placeholder="메모" rows={2} onBlur={async e=>{const value=e.currentTarget.value.trim();const {error}=await supabase.from("location_consents").update({notes:value||null}).eq("id",v.id);if(error)setMessage("메모 저장 실패: "+error.message);else setLocationConsents(old=>old.map(x=>x.id===v.id?{...x,notes:value||null}:x));}} style={{width:"190px",padding:"7px",border:"1px solid #ccc"}}/></td>
+     </tr>)}</tbody>
+    </table>
+   </div>}
+   <button type="button" onClick={loadAnalytics} style={{marginTop:"12px",border:0,background:"#626a4e",color:"#fff",padding:"9px 13px",cursor:"pointer"}}>동의자 목록 새로고침</button>
+  </section>
   <h3 style={{fontWeight:400,marginTop:"28px"}}>게시글별 조회수</h3>
   {items.length===0?<p>등록된 게시글이 없어.</p>:items.map(p=><div key={p.id} style={{display:"flex",justifyContent:"space-between",gap:"12px",padding:"11px 0",borderBottom:"1px solid #d5d0c5",fontSize:"13px"}}><span>{p.title}</span><strong>{(productViews[p.id]??0).toLocaleString("ko-KR")}회</strong></div>)}
   <h3 style={{fontWeight:400,marginTop:"30px"}}>최근 방문 기록 (최대 100건)</h3>
