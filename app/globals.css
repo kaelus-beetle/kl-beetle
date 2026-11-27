@@ -97,8 +97,8 @@
 /* SHOP: fixed card geometry independent of product count */
 .shopProductGrid{width:min(1180px,100%);margin:0 auto;padding:60px 32px 110px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:28px;align-items:stretch;}
 .shopProductCard{display:flex;flex-direction:column;min-width:0;overflow:hidden;background:#f2efe8;border:1px solid #d5d0c5;color:#292d25;text-decoration:none;}
-.shopProductImage{height:270px;width:100%;position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#e3e0d7;padding:14px;}
-.shopProductImage img{display:block;width:100%;height:100%;object-fit:contain;}
+.shopProductImage{height:auto;aspect-ratio:3/2;width:100%;position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#e3e0d7;padding:0;}
+.shopProductImage img{display:block;width:100%;height:100%;object-fit:cover;}
 .shopProductPlaceholder{display:grid;place-items:center;width:100%;height:100%;color:#777;}
 .shopSoldBadge{position:absolute;top:15px;right:15px;background:#34392d;color:#fff;padding:8px 12px;font-size:9px;}
 .shopProductInfo{display:flex;flex-direction:column;align-items:flex-start;gap:12px;flex:1;min-height:175px;padding:22px;background:#f2efe8;color:#292d25;}
