@@ -2,9 +2,27 @@
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { supabase, configured } from "../../lib/supabase";
 
-type VisitorLog = { id:number; visitor_id:string; ip_address:string|null; country:string|null; region:string|null; city:string|null; device:string|null; operating_system:string|null; browser:string|null; page_path:string; created_at:string; gps_latitude:number|null; gps_longitude:number|null; gps_accuracy:number|null; gps_consent_at:string|null; referrer_url:string|null; referrer_source:string|null; browser_language:string|null; timezone:string|null; is_returning:boolean; duration_seconds:number|null };
+type VisitorLog = { id:number; visitor_id:string; ip_address:string|null; country:string|null; region:string|null; city:string|null; device:string|null; operating_system:string|null; user_agent?:string|null; browser:string|null; page_path:string; created_at:string; gps_latitude:number|null; gps_longitude:number|null; gps_accuracy:number|null; gps_consent_at:string|null; referrer_url:string|null; referrer_source:string|null; browser_language:string|null; timezone:string|null; is_returning:boolean; duration_seconds:number|null };
 type LocationConsent = { id:number; visitor_id:string; ip_address:string|null; country:string|null; region:string|null; city:string|null; gps_latitude:number; gps_longitude:number; gps_accuracy:number|null; consented_at:string; display_name:string|null; notes:string|null };
 type Product = { id:number; title:string; price:string|null; image_url:string|null; listing_image_url?:string|null; listing_image_ratio?:string|null; image_urls?:string[]|null; category:string|null; is_sold:boolean; scientific_name?:string|null; origin?:string|null; specimen_size?:string|null; sex?:string|null; specimen_description?:string|null };
+function visitorDeviceLabel(v:VisitorLog){
+ const ua=v.user_agent||"";
+ if(/iPhone/i.test(ua)) return "모바일 / iPhone";
+ if(/iPad/i.test(ua)) return "태블릿 / iPad";
+ if(/Android/i.test(ua)){
+  const samsung=ua.match(/;\\s*(SM-[A-Z0-9-]+)/i);
+  const model=samsung?.[1];
+  if(model) return `모바일 / 갤럭시 (${model.toUpperCase()})`;
+  if(/SamsungBrowser/i.test(ua)) return "모바일 / 갤럭시";
+  const pixel=ua.match(/;\\s*(Pixel[^;)]+)/i);
+  if(pixel) return `모바일 / ${pixel[1].trim()}`;
+  return "모바일 / Android";
+ }
+ if(/Macintosh|Mac OS X/i.test(ua)) return "PC / Mac";
+ if(/Windows NT/i.test(ua)) return "PC / Windows";
+ if(/Linux/i.test(ua)) return "PC / Linux";
+ return [v.device,v.operating_system].filter(Boolean).join(" / ")||"확인 불가";
+}
 const imageSlots=[{key:"hero_image",label:"메인 배경 사진"},{key:"shop_intro_background",label:"SHOP 상단 자연 배경 사진"},{key:"about_intro_background",label:"ABOUT 상단 MEET THE BREEDER 배경"},{key:"about_image",label:"ABOUT 브리더 프로필 사진"},{key:"about_philosophy_image",label:"ABOUT Small wonders 아래 사진"},{key:"species_muelleri_image",label:"ABOUT 뮤엘러리사슴벌레 사진"},{key:"species_hercules_image",label:"ABOUT 헤라클레스장수풍뎅이 사진"},{key:"gallery_1",label:"갤러리 사진 1"},{key:"gallery_2",label:"갤러리 사진 2"},{key:"gallery_3",label:"갤러리 사진 3"}];
 
 export default function Admin(){
@@ -246,7 +264,7 @@ export default function Admin(){
      <td style={{padding:"10px 8px",borderBottom:"1px solid #e0dcd3",whiteSpace:"nowrap"}}>{new Date(v.created_at).toLocaleString("ko-KR",{timeZone:"Asia/Seoul"})}</td>
      <td style={{padding:"10px 8px",borderBottom:"1px solid #e0dcd3",whiteSpace:"nowrap"}}>{v.ip_address||"확인 불가"}</td>
      <td style={{padding:"10px 8px",borderBottom:"1px solid #e0dcd3"}}>{[v.country,v.region,v.city].filter(Boolean).join(" · ")||"확인 불가"}</td>
-     <td style={{padding:"10px 8px",borderBottom:"1px solid #e0dcd3"}}>{[v.device,v.operating_system].filter(Boolean).join(" / ")||"-"}</td>
+     <td style={{padding:"10px 8px",borderBottom:"1px solid #e0dcd3"}}>{visitorDeviceLabel(v)}</td>
      <td style={{padding:"10px 8px",borderBottom:"1px solid #e0dcd3"}}>{v.browser||"-"}</td>
      <td style={{padding:"10px 8px",borderBottom:"1px solid #e0dcd3",minWidth:"130px"}}><strong>{v.referrer_source||"기존 기록"}</strong>{v.referrer_url&&<div style={{marginTop:3,maxWidth:190,overflowWrap:"anywhere"}}><a href={v.referrer_url} target="_blank" rel="noreferrer" style={{color:"#526044"}}>{new URL(v.referrer_url).hostname}</a></div>}</td>
      <td style={{padding:"10px 8px",borderBottom:"1px solid #e0dcd3",whiteSpace:"nowrap"}}>{v.duration_seconds===null?"측정 전":v.duration_seconds<60?`${v.duration_seconds}초`:`${Math.floor(v.duration_seconds/60)}분 ${v.duration_seconds%60}초`}</td>
